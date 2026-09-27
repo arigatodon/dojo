@@ -1,0 +1,7 @@
+# Modelos 3D de terceros sin licencia verificada: no se publican
+*.blend
+*.blend1
+*.obj
+*.fbx
+/*.glb
+assets/*.glb

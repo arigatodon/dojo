@@ -1,0 +1,208 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dōjō · Tu dojo virtual</title>
+<meta name="theme-color" content="#0b0908">
+<link rel="stylesheet" href="css/estilos.css?v=6">
+
+<!-- grano de papel washi sobre toda la app -->
+<div class="grano" aria-hidden="true"></div>
+
+<!-- ====================== BARRA SUPERIOR ====================== -->
+<header class="barra" id="barra">
+  <div class="marca" onclick="irA('inicio')">
+    <span class="enso" aria-hidden="true">
+      <svg viewBox="0 0 40 40"><path class="enso-trazo" d="M23.5 4.6C13.2 2.6 4.4 10.3 4.6 20.4c.2 9.8 8.6 16.9 18 15.3 8.8-1.5 14.4-9.9 12.6-18.4C33.9 11.1 29 6.8 24 5.4"/></svg>
+      <span class="enso-kanji">道</span>
+    </span>
+    <span class="marca-txt">DŌJŌ</span>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn" data-vista="inicio" onclick="irA('inicio')"><span class="nav-kanji">始</span><span>Inicio</span></button>
+    <button class="nav-btn" data-vista="mediciones" onclick="irA('mediciones')"><span class="nav-kanji">量</span><span>Mediciones</span></button>
+    <button class="nav-btn" data-vista="biblioteca" onclick="irA('biblioteca')"><span class="nav-kanji">巻</span><span>Biblioteca</span></button>
+  </nav>
+</header>
+
+<!-- ====================== INICIO ====================== -->
+<main id="vista-inicio" class="vista activa">
+  <section class="portada">
+    <div class="portada-3d" id="portada-3d"><!-- el dojo vivo (Three.js) --></div>
+    <div class="portada-velo"></div>
+    <div class="vertical-tag" aria-hidden="true">道場 · 心技体</div>
+    <div class="portada-texto">
+      <p class="sobretitulo">Tu dojo, en un metro cuadrado</p>
+      <h1>Entra al <em>dōjō</em></h1>
+      <p class="lema">Disciplina, respiración y movimiento. Una clase guiada por el sensei: técnica marcial, fuerza y calma, sin salir de casa.</p>
+      <div class="portada-acciones">
+        <button class="btn-cta" onclick="iniciarClase('completa')">Empezar la clase de hoy <span class="kanji-btn">始</span></button>
+        <button class="btn-fantasma" onclick="document.getElementById('clases').scrollIntoView({behavior:'smooth'})">Ver todas las clases</button>
+      </div>
+      <div class="stats" id="stats-inicio">
+        <div class="stat"><b id="stat-sesiones">0</b><span>clases</span></div>
+        <div class="stat"><b id="stat-racha">0</b><span>días de racha</span></div>
+        <div class="stat"><b id="stat-minutos">0</b><span>minutos</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="contenido">
+    <section class="seccion" id="clases">
+      <header class="seccion-cab">
+        <span class="seccion-kanji" aria-hidden="true">稽古</span>
+        <h2 class="titulo-seccion">Elige tu clase</h2>
+        <p>Clases completas y guiadas: calentamiento, fuerza, técnica y vuelta a la calma. Tú marcas el ritmo con pausar y saltar.</p>
+      </header>
+      <div class="tarjetas" id="tarjetas-rutinas"><!-- generado por JS --></div>
+    </section>
+
+    <section class="seccion">
+      <header class="seccion-cab">
+        <span class="seccion-kanji" aria-hidden="true">流派</span>
+        <h2 class="titulo-seccion">Entrenamiento por disciplina</h2>
+        <p>Sesión enfocada en un arte marcial, con la estructura de una clase real de su escuela: calentamiento, técnica propia y vuelta a la calma.</p>
+      </header>
+      <div class="tarjetas tarjetas-artes" id="tarjetas-artes"><!-- generado por JS --></div>
+    </section>
+
+    <p class="aviso">⚠️ Calienta siempre antes y escucha a tu cuerpo. Si algo duele (no molesta: duele), detente. Esto no sustituye consejo médico.</p>
+  </div>
+</main>
+
+<!-- ====================== CLASE / REPRODUCTOR ====================== -->
+<main id="vista-clase" class="vista">
+  <div class="escenario" id="escenario">
+    <div class="figura" id="figura"><!-- lienzo 3D (o SVG de respaldo) --></div>
+    <div class="escenario-velo"></div>
+  </div>
+
+  <div class="hud" id="hud">
+    <div class="hud-arriba">
+      <button class="btn-icono" onclick="terminarClase(false)" title="Salir de la clase">✕</button>
+      <div class="progreso-wrap">
+        <div class="progreso-barra"><i id="progreso-relleno"></i></div>
+        <div class="progreso-txt">
+          <span id="bloque-actual" class="bloque-actual"></span>
+          <span><span id="paso-actual">1</span>/<span id="paso-total">1</span> · queda <span id="tiempo-total-restante">60:00</span></span>
+        </div>
+      </div>
+      <button class="btn-icono" id="btn-fondo" onclick="cambiarFondo()" title="Cambiar ambiente">🎴</button>
+      <button class="btn-icono" id="btn-personaje" onclick="cambiarPersonaje()" title="Cambiar personaje">🥷</button>
+      <button class="btn-icono" id="btn-voz" onclick="alternarVoz()" title="Voz del sensei">🔊</button>
+      <button class="btn-icono" id="btn-hud" onclick="alternarHud()" title="Modo inmersivo: ocultar la guía">◧</button>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <div class="hud-abajo">
+      <div class="hud-info">
+        <div class="chip-categoria" id="chip-categoria">Calentamiento</div>
+        <h2 class="ejercicio-nombre" id="ejercicio-nombre">Prepárate</h2>
+        <div class="meta-ejercicio" id="meta-ejercicio"></div>
+        <div class="siguiente" id="siguiente"></div>
+      </div>
+      <div class="hud-contador"><div class="contador" id="contador">10</div></div>
+      <aside class="hud-guia" id="hud-guia">
+        <h3>Guía del sensei</h3>
+        <ul class="instrucciones" id="instrucciones"></ul>
+        <div class="respiracion" id="respiracion"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="controles">
+    <button class="ctrl" onclick="pasoAnterior()" title="Anterior (←)">⏮</button>
+    <button class="ctrl ctrl-grande" id="btn-pausa" onclick="alternarPausa()" title="Pausar / Reanudar (espacio)">⏸</button>
+    <button class="ctrl" onclick="pasoSiguiente()" title="Saltar (→)">⏭</button>
+  </div>
+</main>
+
+<!-- ====================== MEDICIONES ====================== -->
+<main id="vista-mediciones" class="vista">
+  <section class="panel">
+    <header class="panel-cab">
+      <span class="kanji-fondo" aria-hidden="true">量</span>
+      <h1>Mediciones del cuerpo</h1>
+      <p class="lema">Mide cada 1–2 semanas, en ayunas y a la misma hora. La constancia importa más que el número.</p>
+    </header>
+
+    <form id="form-medicion" class="form-medicion" onsubmit="guardarMedicion(event)">
+      <div class="campos">
+        <label>Peso (kg)<input type="number" step="0.1" name="peso" inputmode="decimal"></label>
+        <label>Cintura (cm)<input type="number" step="0.1" name="cintura" inputmode="decimal"></label>
+        <label>Pecho (cm)<input type="number" step="0.1" name="pecho" inputmode="decimal"></label>
+        <label>Cadera (cm)<input type="number" step="0.1" name="cadera" inputmode="decimal"></label>
+        <label>Brazo (cm)<input type="number" step="0.1" name="brazo" inputmode="decimal"></label>
+        <label>Muslo (cm)<input type="number" step="0.1" name="muslo" inputmode="decimal"></label>
+      </div>
+      <label class="campo-ancho">Notas<input type="text" name="notas" placeholder="¿Cómo te sentiste? energía, sueño..."></label>
+      <button type="submit" class="btn-primario">Guardar medición de hoy</button>
+    </form>
+
+    <div id="resumen-medicion" class="resumen-medicion"></div>
+
+    <h2 class="titulo-seccion">Peso en el tiempo</h2>
+    <div id="grafico-peso" class="grafico"></div>
+
+    <h2 class="titulo-seccion">Historial</h2>
+    <div id="historial-mediciones" class="historial"></div>
+  </section>
+</main>
+
+<!-- ====================== BIBLIOTECA ====================== -->
+<main id="vista-biblioteca" class="vista">
+  <section class="panel">
+    <header class="panel-cab">
+      <span class="kanji-fondo" aria-hidden="true">巻</span>
+      <h1>Biblioteca de técnicas</h1>
+      <p class="lema">Toca una técnica para ver la figura, los detalles de ejecución y el personaje en 3D. Estas son las técnicas que componen tus clases.</p>
+    </header>
+    <div id="lista-biblioteca" class="lista-biblioteca"></div>
+  </section>
+</main>
+
+<!-- ====================== VISOR / EDITOR 3D (overlay) ====================== -->
+<div id="visor3d" class="visor3d oculto" role="dialog" aria-modal="true">
+  <div class="visor-caja">
+    <div class="visor-cab">
+      <h2 id="visor-titulo">Movimiento</h2>
+      <button class="btn-icono" onclick="cerrarVisor()" title="Cerrar">✕</button>
+    </div>
+    <div class="visor-cuerpo">
+      <div class="visor-lienzo" id="visor-lienzo">
+        <div class="visor-pista">Arrastra para girar 🔄</div>
+      </div>
+      <div class="visor-panel" id="visor-panel">
+        <!-- se rellena solo si el movimiento es editable -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== PUERTAS SHOJI (transición) ====================== -->
+<div id="shoji" class="shoji" aria-hidden="true">
+  <div class="shoji-panel izq"></div>
+  <div class="shoji-panel der"></div>
+</div>
+
+<!-- ====================== FIN DE CLASE ====================== -->
+<div id="fin-clase" class="fin-clase oculto" role="dialog" aria-modal="true">
+  <div class="fin-caja">
+    <div class="fin-kanji">押忍</div>
+    <h2>Clase completada</h2>
+    <p id="fin-frase">Todo trabajo tiene su recompensa.</p>
+    <div class="fin-datos">
+      <div><b id="fin-minutos">60</b><span>minutos</span></div>
+      <div><b id="fin-ejercicios">0</b><span>técnicas</span></div>
+      <div><b id="fin-racha">0</b><span>días de racha</span></div>
+    </div>
+    <button class="btn-cta" onclick="cerrarFin()">Oss <span class="kanji-btn">礼</span></button>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="assets/modelos.js?v=6"></script>
+<script src="assets/personajes-extra.js?v=6"></script>
+<script src="js/figuras.js?v=6"></script>
+<script src="js/ejercicios.js?v=6"></script>
+<script src="js/escena3d.js?v=6"></script>
+<script src="js/app.js?v=6"></script>
