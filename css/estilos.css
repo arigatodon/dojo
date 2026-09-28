@@ -184,6 +184,13 @@ body.en-clase .barra{display:none}
 .tarjeta .dur{display:inline-block;color:var(--kin);font-weight:700;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;font-variant-numeric:tabular-nums;margin-bottom:.6rem}
 .tarjeta h3{font-family:var(--display);font-size:1.55rem;line-height:1.1;margin-bottom:.4rem;color:var(--washi);font-weight:700;max-width:80%}
 .tarjeta p{color:var(--humo);font-size:.92rem;line-height:1.5;max-width:34ch;margin-top:auto}
+.tarjeta-meta{display:flex;align-items:flex-end;justify-content:space-between;gap:.6rem;margin-top:.9rem;padding-top:.6rem;border-top:1px solid var(--linea);font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--humo)}
+.tarjeta-fig{flex:none;width:34px;margin:-.4rem 0 -.3rem;opacity:.55;transition:opacity .3s}
+.tarjeta-fig svg{width:100%;height:auto;display:block}
+.tarjeta-fig .figfig{stroke:var(--color-arte,var(--kin));stroke-width:7}
+.tarjeta-fig .figfig.cabeza{fill:var(--color-arte,var(--kin));stroke:none}
+.tarjeta-fig .figsuelo{display:none}
+.tarjeta:hover .tarjeta-fig{opacity:1}
 .tarjeta-arte{padding-left:1.6rem}
 .tarjeta-arte .obi{position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--color-arte,var(--kin));box-shadow:0 0 18px var(--color-arte,var(--kin))}
 .tarjeta-arte .kanji{opacity:.22;color:var(--color-arte,var(--kin));font-size:2.4rem;top:1rem}
@@ -259,6 +266,10 @@ body.en-clase .barra{display:none}
 }
 .contador.alerta{color:var(--urushi2);animation:latido .5s ease}
 .contador.descanso{color:var(--matcha)}
+.contador-trazo{height:5px;margin:.5rem auto 0;width:100%;min-width:5.5rem;border-radius:3px;background:rgba(243,234,217,.10);overflow:hidden}
+.contador-trazo i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--kin),#f0d28e);transform-origin:left;transition:transform 1s linear,background .3s;box-shadow:0 0 14px rgba(217,178,95,.5)}
+.contador-trazo i.calma{background:linear-gradient(90deg,#6f8f52,var(--matcha));box-shadow:0 0 14px rgba(143,174,107,.45)}
+.contador-trazo i.alerta{background:linear-gradient(90deg,var(--urushi),var(--urushi2));box-shadow:0 0 14px rgba(230,77,54,.55)}
 @keyframes latido{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
 .hud-guia{
   grid-area:guia;background:var(--vidrio);border:1px solid var(--linea2);border-radius:18px;padding:1rem 1.1rem 1.1rem;
@@ -328,10 +339,10 @@ body.en-clase .barra{display:none}
 .shoji-panel.izq::after{right:0}.shoji-panel.der::after{left:0}
 
 /* ---------- Pantalla final ---------- */
-.fin-clase{position:fixed;inset:0;z-index:850;display:grid;place-items:center;background:rgba(11,9,8,.86);backdrop-filter:blur(14px);padding:1rem}
+.fin-clase{position:fixed;inset:0;z-index:850;display:flex;background:rgba(11,9,8,.86);backdrop-filter:blur(14px);padding:1rem;overflow-y:auto}
 .fin-clase.oculto{display:none}
 .fin-caja{
-  width:min(520px,100%);text-align:center;padding:2.6rem 2rem 2.2rem;border-radius:26px;
+  width:min(520px,100%);margin:auto;text-align:center;padding:2.6rem 2rem 2.2rem;border-radius:26px;
   background:linear-gradient(160deg,#1c1613,#110d0b);border:1px solid var(--linea2);box-shadow:var(--sombra);
   animation:aparecer .6s cubic-bezier(.2,.7,.2,1);
 }
@@ -341,6 +352,25 @@ body.en-clase .barra{display:none}
 .fin-datos{display:flex;justify-content:center;gap:2.4rem;margin:1.6rem 0 1.8rem}
 .fin-datos div b{display:block;font-family:var(--display);font-size:2.6rem;color:var(--kin);line-height:1}
 .fin-datos div span{font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;color:var(--humo);font-weight:700}
+
+/* opinión tras la clase */
+.opinion{margin:0 0 1.6rem;padding:1.3rem 1.2rem 1.1rem;border-radius:18px;background:rgba(243,234,217,.035);border:1px solid var(--linea);text-align:center}
+.opinion h3{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--washi);margin-bottom:.5rem}
+.estrellas{display:flex;justify-content:center;gap:.25rem;margin-bottom:.7rem}
+.estrellas button{background:none;border:0;cursor:pointer;font-size:1.9rem;line-height:1;padding:.15rem .2rem;color:rgba(243,234,217,.18);transition:color .15s,transform .15s}
+.estrellas button:hover{transform:translateY(-2px) scale(1.08)}
+.estrellas button.on{color:var(--kin);text-shadow:0 0 18px rgba(217,178,95,.45)}
+.chips-opinion{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem}
+.chips-opinion button{border:1px solid var(--linea2);background:var(--laca2);border-radius:999px;padding:.35rem .95rem;font-size:.82rem;font-weight:500;cursor:pointer;color:var(--tinta);transition:background .15s,border-color .15s}
+.chips-opinion button.on{background:rgba(200,49,30,.22);border-color:var(--urushi2);color:var(--washi)}
+.opinion textarea{width:100%;resize:vertical;min-height:4.6rem;border-radius:12px;border:1px solid var(--linea2);background:rgba(0,0,0,.28);color:var(--tinta);font:inherit;font-size:.92rem;padding:.7rem .8rem;line-height:1.45}
+.opinion textarea::placeholder{color:rgba(168,155,135,.7)}
+.opinion textarea:focus{outline:none;border-color:var(--kin)}
+.opinion-acciones{display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-top:.7rem}
+.opinion-acciones .btn-fantasma[disabled]{opacity:.5;cursor:default}
+.opinion-nota{font-size:.74rem;color:var(--humo)}
+.aviso-opinion a{color:var(--kin)}
+.aviso-opinion + .aviso{margin-top:.6rem;border-top:0;padding-top:0}
 
 /* ============================================================
    PANELES — mediciones / biblioteca

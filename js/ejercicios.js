@@ -313,9 +313,8 @@ const POR_ID = Object.fromEntries(BIBLIOTECA.map(e=>[e.id,e]));
    la fuerza en 2 series, técnica y calma a 1 vuelta.            */
 const RUTINAS = {
   completa:{
-    nombre:'Clase completa', kanji:'道', dur:'≈ 60 min',
+    nombre:'Clase completa', kanji:'道', dur:'≈ 50 min',
     desc:'La sesión de dojo entera: calentar, fortalecer, técnica y calma.',
-    descanso:15,
     bloques:[
       {titulo:'Calentamiento', rep:2, ids:['trote','rodillas','talones','jumping']},
       {titulo:'Movilidad',     rep:1, ids:['mov_articular','circulo_cadera','gato_camello','balanceo_pierna']},
@@ -328,9 +327,8 @@ const RUTINAS = {
     ],
   },
   express:{
-    nombre:'Express', kanji:'速', dur:'≈ 30 min',
+    nombre:'Express', kanji:'速', dur:'≈ 22 min',
     desc:'Poco tiempo: calentamiento, fuerza esencial y estiramiento.',
-    descanso:15,
     bloques:[
       {titulo:'Calentamiento', rep:1, ids:['trote','rodillas','jumping','mov_articular']},
       {titulo:'Fuerza (2 series)', rep:2, ids:['sentadilla','zancada','flexiones','press_hombro']},
@@ -339,9 +337,8 @@ const RUTINAS = {
     ],
   },
   sorprende:{
-    nombre:'Sorpréndeme', kanji:'乱', dur:'≈ 40–50 min',
+    nombre:'Sorpréndeme', kanji:'乱', dur:'≈ 35–45 min',
     desc:'Una clase variada generada al azar. Distinta cada vez.',
-    descanso:15,
     generar:true,
   },
 
@@ -349,7 +346,6 @@ const RUTINAS = {
   karate:{
     arte:true, nombre:'Karate', kanji:'空手', dur:'≈ 60 min',
     desc:'Clase de dojo completa: carrera, junbi undō, acondicionamiento, kihon, kata y kumite.',
-    descanso:12,
     bloques:[
       /* 0. Apertura: rei y mokusō, como en el dojo */
       {titulo:'Saludo y mokusō', rep:1, ids:['mokuso_inicial']},
@@ -372,9 +368,8 @@ const RUTINAS = {
     ],
   },
   muaythai:{
-    arte:true, nombre:'Muay Thai', kanji:'ムエタイ', dur:'≈ 50 min',
+    arte:true, nombre:'Muay Thai', kanji:'ムエタイ', dur:'≈ 45 min',
     desc:'Sesión de gimnasio tailandés: carrera, cuerda, sombra, las ocho armas y acondicionamiento.',
-    descanso:12,
     bloques:[
       {titulo:'Carrera y cuerda', rep:1, ids:['trote_largo','cuerda','rodillas','jumping']},
       {titulo:'Movilidad articular', rep:1, ids:['rot_cuello','circulo_brazos','circulo_cadera','rot_tobillos']},
@@ -388,9 +383,8 @@ const RUTINAS = {
     ],
   },
   taekwondo:{
-    arte:true, nombre:'Taekwondo', kanji:'跆拳道', dur:'≈ 40 min',
+    arte:true, nombre:'Taekwondo', kanji:'跆拳道', dur:'≈ 37 min',
     desc:'Carrera, movilidad, patadas de precisión, altura y velocidad, y kyorugi.',
-    descanso:12,
     bloques:[
       {titulo:'Carrera inicial', rep:1, ids:['trote_largo','rodillas','jumping']},
       {titulo:'Movilidad articular', rep:1, ids:['rot_tobillos','rot_rodillas','circulo_cadera','rot_cuello','balanceo_pierna']},
@@ -404,9 +398,8 @@ const RUTINAS = {
     ],
   },
   kenjutsu:{
-    arte:true, nombre:'Kenjutsu', kanji:'剣術', dur:'≈ 30 min',
+    arte:true, nombre:'Kenjutsu', kanji:'剣術', dur:'≈ 25 min',
     desc:'Sable: cortes (suburi), guardia y desplazamientos. Usa un bokken o un palo.',
-    descanso:12,
     bloques:[
       {titulo:'Calentamiento', rep:1, ids:['trote_largo','mov_articular','circulo_cadera']},
       {titulo:'Movilidad de brazos y muñecas', rep:1, ids:['circulo_brazos','rot_cuello']},

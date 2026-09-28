@@ -59,7 +59,7 @@
   "license": "https://www.gnu.org/licenses/gpl-3.0.html"
 }
 </script>
-<link rel="stylesheet" href="css/estilos.css?v=6">
+<link rel="stylesheet" href="css/estilos.css?v=7">
 </head>
 <body>
 
@@ -123,6 +123,7 @@
       <div class="tarjetas tarjetas-artes" id="tarjetas-artes"><!-- generado por JS --></div>
     </section>
 
+    <p class="aviso aviso-opinion">¿Ideas, errores o un movimiento que se ve raro? <a href="https://github.com/arigatodon/dojo/issues/new?labels=feedback&amp;title=Comentario%20sobre%20D%C5%8Dj%C5%8D" target="_blank" rel="noopener">Déjanos tu comentario</a>.</p>
     <p class="aviso">⚠️ Calienta siempre antes y escucha a tu cuerpo. Si algo duele (no molesta: duele), detente. Esto no sustituye consejo médico.</p>
   </div>
 </main>
@@ -158,7 +159,7 @@
         <div class="meta-ejercicio" id="meta-ejercicio"></div>
         <div class="siguiente" id="siguiente"></div>
       </div>
-      <div class="hud-contador"><div class="contador" id="contador">10</div></div>
+      <div class="hud-contador"><div class="contador" id="contador">10</div><div class="contador-trazo" aria-hidden="true"><i id="contador-trazo"></i></div></div>
       <aside class="hud-guia" id="hud-guia">
         <h3>Guía del sensei</h3>
         <ul class="instrucciones" id="instrucciones"></ul>
@@ -253,17 +254,40 @@
       <div><b id="fin-ejercicios">0</b><span>técnicas</span></div>
       <div><b id="fin-racha">0</b><span>días de racha</span></div>
     </div>
+
+    <!-- opinión del alumno: se guarda en el dispositivo y se puede publicar en GitHub -->
+    <form class="opinion" id="opinion" onsubmit="enviarOpinion(event)">
+      <h3>¿Cómo fue la clase?</h3>
+      <div class="estrellas" role="radiogroup" aria-label="Valoración de la clase">
+        <button type="button" role="radio" aria-checked="false" data-v="1" aria-label="1 de 5">★</button>
+        <button type="button" role="radio" aria-checked="false" data-v="2" aria-label="2 de 5">★</button>
+        <button type="button" role="radio" aria-checked="false" data-v="3" aria-label="3 de 5">★</button>
+        <button type="button" role="radio" aria-checked="false" data-v="4" aria-label="4 de 5">★</button>
+        <button type="button" role="radio" aria-checked="false" data-v="5" aria-label="5 de 5">★</button>
+      </div>
+      <div class="chips-opinion" role="radiogroup" aria-label="Intensidad">
+        <button type="button" role="radio" aria-checked="false" data-i="suave">Suave</button>
+        <button type="button" role="radio" aria-checked="false" data-i="justa">Justa</button>
+        <button type="button" role="radio" aria-checked="false" data-i="dura">Muy dura</button>
+      </div>
+      <textarea id="opinion-texto" rows="3" maxlength="1500" placeholder="¿Qué te gustó? ¿Qué mejorarías? (movimientos, ritmo, voz…)"></textarea>
+      <div class="opinion-acciones">
+        <button type="submit" class="btn-fantasma" id="opinion-enviar">Enviar comentario</button>
+        <span class="opinion-nota" id="opinion-nota">Se abre GitHub para publicarlo. También queda guardado aquí.</span>
+      </div>
+    </form>
+
     <button class="btn-cta" onclick="cerrarFin()">Oss <span class="kanji-btn">礼</span></button>
   </div>
 </div>
 
 <script src="vendor/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
-<script src="assets/modelos.js?v=6"></script>
-<script src="assets/personajes-extra.js?v=6"></script>
-<script src="js/figuras.js?v=6"></script>
-<script src="js/ejercicios.js?v=6"></script>
-<script src="js/escena3d.js?v=6"></script>
-<script src="js/app.js?v=6"></script>
+<script src="assets/modelos.js?v=7"></script>
+<script src="assets/personajes-extra.js?v=7"></script>
+<script src="js/figuras.js?v=7"></script>
+<script src="js/ejercicios.js?v=7"></script>
+<script src="js/escena3d.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>

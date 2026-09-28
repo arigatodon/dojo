@@ -26,7 +26,7 @@ const Dojo3D = (function(){
      gi: tela · solapa: borde del gi · obi: cinturón · piel · pelo
      capucha: ninja (cabeza cubierta, solo ojos) · calvo: monje · mono: chonmage */
   const personajes = {
-    karateka: {nombre:'Karateka', gi:0xf1ece2, solapa:0xe2dbcc, obi:0x17151a, piel:0xd9a87e, pelo:0x1b1512, detalle:0xe2dbcc},
+    karateka: {nombre:'Karateka', gi:0xf1ece2, solapa:0xe2dbcc, obi:0x17151a, piel:0xd9a87e, pelo:0x1b1512, detalle:0xe2dbcc, hachimaki:0xc8311e},
     ninja:    {nombre:'Ninja',    gi:0x1e2436, solapa:0x2a3149, obi:0xb8321f, piel:0xd4a07a, pelo:0x11131c, detalle:0x2a3149, capucha:true},
     monje:    {nombre:'Monje',    gi:0xb85f2b, solapa:0xd7893f, obi:0xe4b04a, piel:0xc99268, pelo:0x000000, detalle:0x8a4520, calvo:true},
     samurai:  {nombre:'Samurái',  gi:0x2b3a57, solapa:0x3b4d70, obi:0x8e7346, piel:0xd9a87e, pelo:0x14100e, detalle:0x3b4d70, mono:true},
@@ -45,13 +45,13 @@ const Dojo3D = (function(){
              shoji:[0xf7eedb, 0.6], linternas:false, haces:true, exp:1.0},
     noche:  {nombre:'Dojo de noche',  suelo:'madera', paredes:true, bg:0x050506, niebla:[0x050506, 7, 18],
              luz:[0xa9bfe6, 0.28, [-3.2,4.2,2.2]], hemi:[0x38425a, 0x0f0c0a, 0.16], amb:0.03,
-             shoji:[0xdfe6f1, 0.14], linternas:true, haces:false, exp:0.9},
+             shoji:[0xdfe6f1, 0.14], linternas:true, haces:false, exp:0.9, borde:0.45},
     tatami: {nombre:'Sala de tatami', suelo:'tatami', paredes:true, bg:0x120d09, niebla:[0x120d09, 9, 22],
              luz:[0xfff0d6, 1.2, [2.8,4.6,3.2]], hemi:[0xa89a86, 0x3a3020, 0.5], amb:0.16,
              shoji:[0xf9f2e3, 0.75], linternas:false, haces:true, exp:1.0},
     jardin: {nombre:'Jardín zen',     suelo:'grava', paredes:false, cielo:true, bg:0xbfd0e2, niebla:[0xc9d8e8, 14, 60],
              luz:[0xfff3de, 1.15, [4.5,6.5,3]], hemi:[0xbcd3e8, 0x6b6a55, 0.5], amb:0.1,
-             shoji:[0xffffff, 0], linternas:false, haces:false, exp:0.92},
+             shoji:[0xffffff, 0], linternas:false, haces:false, exp:0.92, borde:0.8},
     zen:    {nombre:'Estudio',        suelo:'liso', paredes:false, bg:0xd6d9d4, niebla:[0xd6d9d4, 8, 30],
              luz:[0xffffff, 1.0, [2.5,4,3]], hemi:[0xffffff, 0x9aa0a6, 0.8], amb:0.25,
              shoji:[0xffffff, 0], linternas:false, haces:false, exp:1.0, oculto:true},
@@ -145,7 +145,7 @@ const Dojo3D = (function(){
   const matTela = c => mat(c, {roughness:0.95});
   const matPiel = c => mat(c, {roughness:0.65});
   function esfera(parent, r, color, x,y,z, sx,sy,sz, material){
-    const m = new THREE.Mesh(new THREE.SphereGeometry(r,22,16), material||matTela(color));
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r,36,26), material||matTela(color));
     m.position.set(x||0,y||0,z||0); if(sx!==undefined) m.scale.set(sx,sy,sz);
     m.castShadow=true; parent.add(m); return m;
   }
@@ -168,78 +168,198 @@ const Dojo3D = (function(){
     parent.add(g); return g;
   }
 
+  /* ---------------- Acabado del personaje ----------------
+     · borde(): brillo de contorno (fresnel) añadido al material estándar. Da volumen
+       de figura tallada y despega al personaje del fondo; su fuerza depende del
+       ambiente (BORDE.value, lo fija aplicarFondo).
+     */
+  const BORDE = {value:1};
+  function borde(m, color, fuerza){
+    const uC = {value:lin(color)}, uF = {value:fuerza};
+    m.onBeforeCompile = sh=>{
+      sh.uniforms.uBordeC = uC; sh.uniforms.uBordeF = uF; sh.uniforms.uBordeG = BORDE;
+      sh.fragmentShader = 'uniform vec3 uBordeC; uniform float uBordeF; uniform float uBordeG;\n' +
+        sh.fragmentShader.replace('#include <emissivemap_fragment>',
+          '#include <emissivemap_fragment>\n' +
+          '  float fres = 1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0);\n' +
+          '  totalEmissiveRadiance += uBordeC * (fres*fres*fres) * uBordeF * uBordeG;');
+    };
+    m.customProgramCacheKey = ()=>'dojo-borde';
+    return m;
+  }
+  const telaGi   = c => borde(mat(c, {roughness:0.9, side:THREE.DoubleSide}), 0xfff2dc, 0.12);
+  const telaLisa = c => borde(mat(c, {roughness:0.80}), 0xfff2dc, 0.14);
+  const pielMat  = c => borde(mat(c, {roughness:0.6}), 0xffb08a, 0.22);   // borde cálido: luz que atraviesa la piel
+
+  /* Pieza torneada: perfil [[radio, y], …] girado alrededor del eje Y (y negativa = hacia abajo) */
+  function torneado(parent, perfil, material, sx, sz, segs){
+    const orden = perfil[perfil.length-1][1] < perfil[0][1] ? perfil.slice().reverse() : perfil;   // de abajo arriba: caras hacia fuera
+    const geo = new THREE.LatheGeometry(orden.map(q=>new THREE.Vector2(q[0],q[1])), segs||24);
+    const m = new THREE.Mesh(geo, material); m.scale.set(sx||1,1,sz||1);
+    m.castShadow=true; parent.add(m); return m;
+  }
+  /* Cinta plana con grosor que sigue una curva (solapas del gi, puntas del obi).
+     pts: puntos; normalDe(p): hacia fuera de la superficie; ancho: número o función(u). */
+  function cinta(parent, pts, normalDe, ancho, grosor, material){
+    const curva = new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
+    const N=24, pos=[], idx=[];
+    for(let i=0;i<=N;i++){
+      const u=i/N, p=curva.getPointAt(u), d=curva.getTangentAt(u), n=normalDe(p).normalize();
+      const lado=new THREE.Vector3().crossVectors(d,n).normalize();
+      const w=(typeof ancho==='function'? ancho(u) : ancho)/2;
+      for(const [sl,sn] of [[-1,0],[1,0],[1,-1],[-1,-1]]){          // 4 vértices por sección: cara exterior y dorso
+        pos.push(p.x+lado.x*w*sl+n.x*grosor*sn, p.y+lado.y*w*sl+n.y*grosor*sn, p.z+lado.z*w*sl+n.z*grosor*sn);
+      }
+      if(i<N) for(let k=0;k<4;k++){ const a=i*4+k, b=i*4+(k+1)%4, c2=a+4, d2=b+4; idx.push(a,c2,b, b,c2,d2); }
+    }
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3)); geo.setIndex(idx); geo.computeVertexNormals();
+    const m=new THREE.Mesh(geo, material); m.castShadow=true; parent.add(m); return m;
+  }
+
   /* ---------------- Construcción del personaje ----------------
-     Gi de verdad: chaqueta con solapas cruzadas en V, mangas anchas,
-     pantalón amplio hasta el tobillo, obi anudado con puntas colgando,
-     puños cerrados, pies, cara con cejas y peinado según el personaje.
-     MISMAS articulaciones y longitudes (j.*) que siempre → todos los
-     animadores y el retargeting a .glb siguen valiendo tal cual. */
+     Figura estilizada de gi: tronco en V con pecho y espalda, chaqueta con solapas
+     que se CRUZAN sobre el pecho (la izquierda encima), cuello, mangas anchas que
+     acaban a media antebrazo con dobladillo, pantalón amplio con bajo, obi de dos
+     vueltas con nudo y puntas, manos cerradas con nudillos, pies descalzos, cara
+     con ojos que parpadean y peinado según el personaje (hachimaki, chonmage…).
+     Las articulaciones y longitudes (j.*) son LAS MISMAS de siempre → todos los
+     animadores y el retargeting a .glb siguen valiendo tal cual.                 */
   function construirPersonaje(p){
     const root = new THREE.Group();
-    const tela = matTela(p.gi), telaSolapa = matTela(p.solapa||p.gi), piel = matPiel(p.piel), telaObi = matTela(p.obi);
-    const pelo = mat(p.pelo||0x1b1512, {roughness:0.75});
+    const tela = telaGi(p.gi), telaSolapa = telaGi(p.solapa||p.gi), piel = pielMat(p.piel), telaObi = telaLisa(p.obi);
+    const pelo = borde(mat(p.pelo||0x1b1512, {roughness:0.55}), 0x9a8a78, 0.35);
+    const oscuro = mat(0x14110e,{roughness:0.35});
 
+    /* --- pelvis, pantalón y obi --- */
     const pelvis = new THREE.Group(); pelvis.position.set(0,0.95,0); root.add(pelvis);
-    esfera(pelvis, 0.21, p.gi, 0,-0.01,0, 1.0,0.72,0.74, tela);          // cadera con volumen
-    const obi = new THREE.Mesh(new THREE.CylinderGeometry(0.215,0.215,0.11,22), telaObi);
-    obi.scale.set(1,1,0.74); obi.position.y=0.03; obi.castShadow=true; pelvis.add(obi);
-    bloque(pelvis, 0.11,0.12,0.06, p.obi, 0,-0.01,0.165, telaObi);        // nudo del obi
-    const puntaA=bloque(pelvis, 0.045,0.20,0.025, p.obi, -0.045,-0.16,0.17, telaObi); puntaA.rotation.z=-0.12;
-    const puntaB=bloque(pelvis, 0.045,0.20,0.025, p.obi,  0.045,-0.16,0.17, telaObi); puntaB.rotation.z= 0.12;
+    esfera(pelvis, 0.205, p.gi, 0,-0.03,0, 1.0,0.70,0.74, tela);
+    const obi = torneado(pelvis, [[0.206,-0.035],[0.212,-0.02],[0.212,0.08],[0.206,0.095]], telaObi, 1, 0.75, 28); obi.position.y=-0.005;
+    const vuelta = new THREE.Mesh(new THREE.TorusGeometry(0.212,0.004,6,40), mat(0x000000,{roughness:1, transparent:true, opacity:0.35}));
+    vuelta.rotation.x=Math.PI/2; vuelta.scale.set(1,0.75,1); vuelta.position.y=0.03; pelvis.add(vuelta);   // raya entre las dos vueltas
+    const nudo = esfera(pelvis, 0.045, p.obi, 0.03,0.03,0.158, 1.25,0.95,0.55, telaObi);
+    const zObi = p=>new THREE.Vector3(0,0,1).add(new THREE.Vector3(p.x*0.4,0,0));
+    cinta(pelvis, [[0.02,0.02,0.170],[-0.02,-0.06,0.178],[-0.055,-0.15,0.176],[-0.07,-0.23,0.168]], zObi, u=>0.05+0.008*u, 0.012, telaObi);
+    cinta(pelvis, [[0.05,0.02,0.170],[0.08,-0.05,0.174],[0.10,-0.13,0.166],[0.115,-0.20,0.155]], zObi, u=>0.05+0.008*u, 0.012, telaObi);
+    nudo.rotation.z=0.2;
 
+    /* --- tronco (chaqueta) --- */
     const torso = new THREE.Group(); torso.position.set(0,0.06,0); pelvis.add(torso);
-    // tronco torneado: cintura → pecho → hombros
-    const perfil=[]; const pts=[[0.19,0.0],[0.20,0.10],[0.215,0.22],[0.235,0.34],[0.25,0.44],[0.235,0.52],[0.12,0.56]];
-    pts.forEach(q=>perfil.push(new THREE.Vector2(q[0],q[1])));
-    const tronco = new THREE.Mesh(new THREE.LatheGeometry(perfil, 26), tela);
-    tronco.scale.set(1,1,0.66); tronco.castShadow=true; torso.add(tronco);
-    esfera(torso, 0.255, p.gi, 0,0.45,0, 1.10,0.58,0.66, tela);           // hombros
-    // solapas cruzadas (V) y triángulo de piel en el pecho
-    esfera(torso, 0.085, p.piel, 0,0.44,0.10, 1.0,0.9,0.6, piel);
-    const solapaL = bloque(torso, 0.065,0.46,0.028, p.solapa, 0.075,0.28,0.145, telaSolapa); solapaL.rotation.z=-0.36; solapaL.rotation.x=0.10;
-    const solapaR = bloque(torso, 0.065,0.46,0.028, p.solapa,-0.075,0.28,0.145, telaSolapa); solapaR.rotation.z= 0.36; solapaR.rotation.x=0.10;
-    const faldon = new THREE.Mesh(new THREE.CylinderGeometry(0.235,0.25,0.16,22,1,true), tela);
-    faldon.scale.set(1,1,0.70); faldon.position.y=-0.10; faldon.castShadow=true; torso.add(faldon); // bajo de la chaqueta sobre el obi
+    const PERFIL_T = [[0.200,-0.15],[0.212,-0.08],[0.200,0.02],[0.198,0.10],[0.215,0.20],[0.240,0.30],[0.255,0.38],[0.250,0.45],[0.225,0.50],[0.160,0.545],[0.075,0.565]];
+    const SZ = 0.64;                                     // el tronco es más plano de delante a atrás
+    const tronco = torneado(torso, PERFIL_T, tela, 1.0, SZ, 30);
+    root.userData.pecho = tronco;                        // respira (escala) en cada cuadro
+    esfera(torso, 0.25, p.gi, 0,0.455,-0.03, 1.14,0.46,0.56, tela);                       // trapecios / hombros
+    esfera(torso, 0.20, p.gi, 0,0.33,-0.035, 1.05,0.85,0.55, tela);                       // espalda (dorsales)
+    // superficie del tronco: z delantera para (x,y), para pegar solapas y la piel del pecho
+    const radioT = y=>{ for(let i=1;i<PERFIL_T.length;i++){ const a=PERFIL_T[i-1], b=PERFIL_T[i];
+        if(y<=b[1]){ const k=(y-a[1])/((b[1]-a[1])||1); return a[0]+(b[0]-a[0])*Math.max(0,Math.min(1,k)); } } return PERFIL_T[PERFIL_T.length-1][0]; };
+    const zFrente = (x,y)=> SZ*Math.sqrt(Math.max(0.0004, radioT(y)*radioT(y)-x*x));
+    const normalT = q=>{ const r=radioT(q.y); return new THREE.Vector3(q.x/(r*r), 0.15, q.z/(SZ*SZ*r*r)); };
+    const trazo = (x0,y0,x1,y1,dz)=>{ const out=[]; for(let i=0;i<=6;i++){ const k=i/6, x=x0+(x1-x0)*k, y=y0+(y1-y0)*k;
+        out.push([x, y, zFrente(x,y)+dz]); } return out; };
+    // piel del pecho en la V (bajo las solapas)
+    // polygonOffset: estas capas finas ganan al tronco que tienen justo debajo (sin parpadeo ni dientes)
+    const encima = (m,f)=>{ const c=m.clone(); c.onBeforeCompile=m.onBeforeCompile; c.customProgramCacheKey=m.customProgramCacheKey;
+      c.polygonOffset=true; c.polygonOffsetFactor=-f; c.polygonOffsetUnits=-f*2; return c; };
+    cinta(torso, trazo(0,0.30,0,0.53,0.007), normalT, u=>0.02+0.14*u, 0.005, encima(piel,2));
+    // solapas: la derecha por debajo, la izquierda (x>0 = izquierda del personaje) encima
+    cinta(torso, trazo(-0.085,0.55,0.105,0.0,0.016), normalT, 0.062, 0.013, encima(telaSolapa,4));
+    cinta(torso, trazo(0.085,0.55,-0.115,0.0,0.031), normalT, 0.064, 0.013, encima(telaSolapa,6));
+    // cuello de la chaqueta por detrás de la nuca
+    const cuelloGi = new THREE.Mesh(new THREE.TorusGeometry(0.088,0.02,8,24,Math.PI*1.15), telaSolapa);
+    cuelloGi.rotation.x=Math.PI/2; cuelloGi.rotation.z=Math.PI*1.075; cuelloGi.scale.set(1,0.78,1.5); cuelloGi.position.set(0,0.545,-0.012);
+    cuelloGi.castShadow=true; torso.add(cuelloGi);
 
+    /* --- cuello y cabeza --- */
     const cuello = new THREE.Group(); cuello.position.set(0,0.52,0); torso.add(cuello);
-    const cuelloM = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.07,0.12,14), piel); cuelloM.position.y=0.03; cuelloM.castShadow=true; cuello.add(cuelloM);
+    torneado(cuello, [[0.058,-0.02],[0.056,0.05],[0.060,0.11],[0.05,0.14]], piel, 1, 1, 16);
     const cabeza = new THREE.Group(); cabeza.position.set(0,0.10,0); cuello.add(cabeza);
-    const craneo = esfera(cabeza, 0.17, p.piel, 0,0.13,0, 0.94,1.06,0.98, p.capucha? tela : piel);
+    const cubierta = p.capucha ? tela : piel;
+    esfera(cabeza, 0.168, p.piel, 0,0.135,-0.005, 0.95,1.04,1.0, cubierta);                 // cráneo
+    esfera(cabeza, 0.118, p.piel, 0,0.075,0.018, 0.97,0.9,1.0, cubierta);                  // mandíbula y mejillas
     if(p.capucha){                                                        // capucha ninja: solo se ve la franja de los ojos
-      bloque(cabeza, 0.30,0.075,0.10, p.piel, 0,0.145,0.115, piel);
+      cinta(cabeza, [[-0.13,0.15,0.09],[-0.07,0.155,0.155],[0,0.157,0.170],[0.07,0.155,0.155],[0.13,0.15,0.09]],
+            q=>new THREE.Vector3(q.x,0,q.z), 0.075, 0.004, piel);
+      cinta(cabeza, [[-0.07,0.25,-0.1],[-0.1,0.18,-0.2],[-0.13,0.06,-0.23],[-0.15,-0.06,-0.22]], q=>new THREE.Vector3(0,0,-1), u=>0.04-0.015*u, 0.008, telaObi); // cola de la cinta
+      cinta(cabeza, [[0.07,0.25,-0.1],[0.09,0.17,-0.2],[0.10,0.05,-0.235],[0.11,-0.04,-0.23]], q=>new THREE.Vector3(0,0,-1), u=>0.04-0.015*u, 0.008, telaObi);
+      cinta(cabeza, [[-0.165,0.205,0.0],[-0.12,0.215,0.105],[0,0.222,0.158],[0.12,0.215,0.105],[0.165,0.205,0.0]], q=>new THREE.Vector3(q.x,0.4,q.z), 0.034, 0.006, telaObi); // hachimaki
     }
-    esfera(cabeza, 0.026, 0x14110e, 0.060,0.145,0.156, 1,1,0.6, mat(0x14110e,{roughness:0.3}));   // ojos
-    esfera(cabeza, 0.026, 0x14110e,-0.060,0.145,0.156, 1,1,0.6, mat(0x14110e,{roughness:0.3}));
-    const cejaL=bloque(cabeza, 0.062,0.012,0.012, p.pelo||0x1b1512, 0.062,0.185,0.158, pelo); cejaL.rotation.z=-0.12;
-    const cejaR=bloque(cabeza, 0.062,0.012,0.012, p.pelo||0x1b1512,-0.062,0.185,0.158, pelo); cejaR.rotation.z= 0.12;
+    // ojos: blanco, iris, brillo — agrupados para poder parpadear
+    const ojos=[];
+    [1,-1].forEach(s=>{
+      const ojo = new THREE.Group(); ojo.position.set(s*0.058,0.148,0.150); cabeza.add(ojo);
+      esfera(ojo, 0.028, 0xf4efe6, 0,0,0, 1.15,0.78,0.5, mat(0xf4efe6,{roughness:0.3}));
+      esfera(ojo, 0.0175, 0x2a1a10, 0,-0.001,0.009, 1,1.08,0.5, oscuro);
+      esfera(ojo, 0.0055, 0xffffff, s*0.004+0.004,0.006,0.017, 1,1,0.5, mat(0xffffff,{emissive:0xffffff, emissiveIntensity:0.9, roughness:0.2}));
+      ojos.push(ojo);
+    });
+    root.userData.ojos = ojos;
+    const colorCeja = p.capucha ? p.gi : (p.pelo||0x1b1512);
+    [1,-1].forEach(s=>{                                                    // cejas decididas (algo inclinadas hacia dentro)
+      const ceja = cinta(cabeza, [[s*0.025,0.178,0.164],[s*0.058,0.190,0.163],[s*0.092,0.184,0.148]], q=>new THREE.Vector3(q.x*0.6,0.2,1),
+                         u=>0.012-0.005*u, 0.006, p.capucha? tela : pelo);
+      ceja.userData.lado=s;
+    });
     if(!p.capucha){
-      esfera(cabeza, 0.022, p.piel, 0,0.105,0.168, 0.8,1.0,0.8, piel);                           // nariz
-      bloque(cabeza, 0.05,0.008,0.01, 0x8a5a48, 0,0.055,0.160, mat(0x8a5a48,{roughness:0.6}));   // boca
-      esfera(cabeza, 0.03, p.piel, 0.165,0.13,0, 0.5,1,0.8, piel); esfera(cabeza, 0.03, p.piel,-0.165,0.13,0, 0.5,1,0.8, piel); // orejas
+      esfera(cabeza, 0.024, p.piel, 0,0.108,0.170, 0.75,1.0,0.85, piel);                          // nariz
+      const boca = new THREE.Mesh(new THREE.TorusGeometry(0.026,0.0045,6,14,Math.PI*0.7), mat(0x8e5646,{roughness:0.6}));
+      boca.rotation.z=Math.PI*1.15; boca.position.set(0,0.068,0.152); boca.scale.set(1,0.55,1); cabeza.add(boca);  // media sonrisa serena
+      [1,-1].forEach(s=>{ esfera(cabeza, 0.032, p.piel, s*0.162,0.12,-0.005, 0.45,1,0.75, piel); });           // orejas
+      [1,-1].forEach(s=>{ esfera(cabeza, 0.022, 0xe07a6a, s*0.085,0.085,0.128, 1.3,0.8,0.4,
+                                 mat(0xe07a6a,{roughness:0.8, transparent:true, opacity:0.22, depthWrite:false})); });   // rubor
     }
-    if(!p.calvo && !p.capucha){                                           // pelo corto: casquete que deja la cara libre
-      const pelo1 = esfera(cabeza, 0.176, p.pelo, 0,0.165,-0.028, 0.98,0.92,1.0, pelo);
-      pelo1.geometry = new THREE.SphereGeometry(0.176, 22, 16, 0, TAU, 0, Math.PI*0.5); pelo1.rotation.x=-0.45;
-      if(p.mono){ esfera(cabeza, 0.05, p.pelo, 0,0.335,-0.03, 1,1.3,1, pelo); }               // chonmage
+    if(!p.calvo && !p.capucha){                                           // pelo: casquete con volumen + mechones
+      const casco = new THREE.Mesh(new THREE.SphereGeometry(0.178, 26, 18, 0, TAU, 0, Math.PI*0.52), pelo);
+      casco.position.set(0,0.15,-0.018); casco.rotation.x=-0.38; casco.scale.set(0.99,1.0,1.03); casco.castShadow=true; cabeza.add(casco);
+      esfera(cabeza, 0.15, p.pelo, 0,0.13,-0.07, 1.08,1.0,0.95, pelo);                            // nuca
+      [[-0.09,0.27,0.08,-0.5,0.35],[-0.02,0.30,0.10,-0.2,0.5],[0.06,0.29,0.09,0.25,0.45],[0.11,0.25,0.06,0.6,0.3]].forEach(m=>{
+        const mech = new THREE.Mesh(new THREE.ConeGeometry(0.045,0.11,10), pelo);                // flequillo en punta
+        mech.position.set(m[0],m[1],m[2]); mech.rotation.set(m[4]+0.9, 0, -m[3]); mech.castShadow=true; cabeza.add(mech);
+      });
+      if(p.mono){ const moño=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.03,0.14,12), pelo);    // chonmage doblado al frente
+        moño.position.set(0,0.33,-0.02); moño.rotation.x=1.25; cabeza.add(moño); esfera(cabeza, 0.035, p.pelo, 0,0.315,-0.07, 1,1,1, pelo); }
     }
-    if(p.capucha){ bloque(cabeza, 0.04,0.22,0.03, p.obi, -0.16,0.12,-0.08, telaObi).rotation.z=0.3; } // cola de la cinta
+    if(p.hachimaki){                                                      // cinta en la frente con puntas al viento
+      const mh = telaLisa(p.hachimaki);
+      const banda = new THREE.Mesh(new THREE.TorusGeometry(0.166,0.017,8,48), mh);
+      banda.rotation.x=Math.PI/2-0.14; banda.scale.set(1,1.04,0.75); banda.position.set(0,0.222,-0.012); cabeza.add(banda);
+      esfera(cabeza, 0.024, p.hachimaki, 0,0.20,-0.172, 1.3,1,0.8, mh);
+      cinta(cabeza, [[0,0.20,-0.175],[-0.04,0.15,-0.24],[-0.07,0.11,-0.28],[-0.08,0.03,-0.29]], q=>new THREE.Vector3(1,0,-0.3), u=>0.035-0.01*u, 0.006, mh);
+      cinta(cabeza, [[0,0.20,-0.175],[0.05,0.14,-0.235],[0.09,0.09,-0.26],[0.12,0.01,-0.27]], q=>new THREE.Vector3(1,0,0.3), u=>0.035-0.01*u, 0.006, mh);
+    }
 
+    /* --- brazos: manga ancha hasta media antebrazo, antebrazo, puño --- */
     function brazo(s){
-      // hombro con manga ancha (0.285 de largo) sobre el brazo, antebrazo de piel, puño cerrado
-      const hombro = miembro(torso, 0.070,0.060, 0.30, p.gi,  s*0.27,0.46,0, tela, 0.098, 0.285, p.gi);
-      const codo   = miembro(hombro,0.058,0.048, 0.27, p.piel, 0,-0.30,0, piel);
-      esfera(codo, 0.062, p.piel, 0,-0.29,0.01, 0.9,0.82,1.05, piel);                // puño
-      esfera(codo, 0.026, p.piel, s*0.045,-0.27,0.03, 1,1,1, piel);                   // pulgar
+      const hombro = new THREE.Group(); hombro.position.set(s*0.27,0.46,0); torso.add(hombro);
+      esfera(hombro, 0.100, p.gi, 0,-0.005,0, 1,1,1, tela);                                // deltoides con la tela
+      torneado(hombro, [[0.100,0.0],[0.103,-0.10],[0.104,-0.22],[0.100,-0.30]], tela, 1, 1, 20);
+      const codo = new THREE.Group(); codo.position.set(0,-0.30,0); hombro.add(codo);
+      esfera(codo, 0.097, p.gi, 0,0,0, 1,1,1, tela);
+      torneado(codo, [[0.100,0.0],[0.104,-0.07],[0.108,-0.12]], tela, 1, 1, 20);             // manga que sigue al antebrazo
+      torneado(codo, [[0.108,-0.118],[0.111,-0.13],[0.104,-0.142],[0.056,-0.142]], telaSolapa, 1, 1, 20);  // dobladillo
+      torneado(codo, [[0.047,-0.02],[0.052,-0.10],[0.054,-0.15],[0.046,-0.215],[0.040,-0.245],[0.036,-0.255]], piel, 1, 1, 16);
+      const puno = new THREE.Group(); puno.position.set(0,-0.295,0.008); codo.add(puno);
+      esfera(puno, 0.052, p.piel, 0,0.008,0, 0.95,1.0,1.1, piel);                          // palma / dorso
+      esfera(puno, 0.040, p.piel, 0,-0.028,0.02, 1.2,0.62,1.0, piel);                      // dedos cerrados
+      esfera(puno, 0.02, p.piel, s*0.045,-0.005,0.03, 0.9,1.4,0.9, piel);                  // pulgar
       return {hombro,codo};
     }
     const bl=brazo(1), br=brazo(-1);
+
+    /* --- piernas: pantalón amplio con bajo, tobillo y pie descalzo --- */
     function pierna(s){
-      const cadera = miembro(pelvis,0.105,0.095, 0.46, p.gi, s*0.12,-0.04,0, tela);
-      const rodilla= miembro(cadera,0.095,0.075, 0.37, p.gi, 0,-0.46,0, tela);         // pernera hasta el tobillo
-      const tobillo = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.05,0.10,14), piel);
-      tobillo.position.y=-0.40; tobillo.castShadow=true; rodilla.add(tobillo);
-      esfera(rodilla, 0.07, p.piel, 0,-0.445,0.06, 1.0,0.55,1.85, piel);              // pie
-      esfera(rodilla, 0.045, p.piel, 0,-0.455,0.17, 1.35,0.75,1.0, piel);             // dedos
+      const cadera = new THREE.Group(); cadera.position.set(s*0.12,-0.04,0); pelvis.add(cadera);
+      esfera(cadera, 0.112, p.gi, 0,0,0, 1,1,1, tela);
+      torneado(cadera, [[0.118,0.0],[0.121,-0.08],[0.114,-0.26],[0.104,-0.46]], tela, 1, 1, 22);
+      const rodilla = new THREE.Group(); rodilla.position.set(0,-0.46,0); cadera.add(rodilla);
+      esfera(rodilla, 0.100, p.gi, 0,0,0, 1,1,1, tela);
+      torneado(rodilla, [[0.104,0.0],[0.100,-0.14],[0.103,-0.30],[0.109,-0.36]], tela, 1, 1, 22);
+      torneado(rodilla, [[0.109,-0.355],[0.112,-0.365],[0.106,-0.378],[0.052,-0.378]], telaSolapa, 1, 1, 22);  // bajo
+      torneado(rodilla, [[0.05,-0.33],[0.052,-0.39],[0.047,-0.42],[0.03,-0.44]], piel, 1, 1, 14);             // tobillo
+      esfera(rodilla, 0.058, p.piel, 0,-0.445,0.055, 0.92,0.52,1.95, piel);                // pie
+      esfera(rodilla, 0.045, p.piel, 0,-0.448,-0.03, 1,0.75,1, piel);                      // talón
+      esfera(rodilla, 0.042, p.piel, s*0.008,-0.455,0.155, 1.3,0.62,0.95, piel);           // dedos
       return {cadera,rodilla};
     }
     const pl=pierna(1), pr=pierna(-1);
@@ -271,7 +391,7 @@ const Dojo3D = (function(){
   const pulso = (t)=>0.5-0.5*Math.cos(t*TAU);      // 0→1→0 suave
 
   const ANIM = {
-    breathe(j,t){ const s=sin(t,.5); j.torso.rotation.x=0.04*s; j.cabeza.rotation.x=0.03*s;
+    breathe(j,t){ const s=pulso(t); j.torso.rotation.x=0.04*s; j.cabeza.rotation.x=0.03*s;
       j.hombroL.rotation.z=0.12+0.03*s; j.hombroR.rotation.z=-0.12-0.03*s; j.root.position.y=0.01*s; },
 
     run(j,t){ const a=sin(t); j.caderaL.rotation.x=0.9*a; j.caderaR.rotation.x=-0.9*a;
@@ -343,7 +463,7 @@ const Dojo3D = (function(){
     /* ---- tumbado boca abajo / plancha ---- */
     plank(j,t){ const inc=0.165; prono(j,inc,0.06);                  // plancha sobre los antebrazos
       j.hombroL.rotation.x=brazoVertical(inc); j.hombroR.rotation.x=brazoVertical(inc);
-      j.codoL.rotation.x=-1.75; j.codoR.rotation.x=-1.75; j.root.position.y+=0.006*sin(t,.5); },
+      j.codoL.rotation.x=-1.75; j.codoR.rotation.x=-1.75; j.root.position.y+=0.006*pulso(t); },
     pushup(j,t){ const u=pulso(t), inc=0.37-0.18*u; prono(j,inc,0.06);  // flexión: baja el pecho, los codos se doblan
       j.hombroL.rotation.x=brazoVertical(inc)+0.85*u; j.hombroR.rotation.x=brazoVertical(inc)+0.85*u;
       j.codoL.rotation.x=-1.55*u; j.codoR.rotation.x=-1.55*u; },
@@ -357,18 +477,19 @@ const Dojo3D = (function(){
       j.caderaL.rotation.x=-1.5*l; j.rodillaL.rotation.x=1.8*l; j.caderaR.rotation.x=-1.5*r; j.rodillaR.rotation.x=1.8*r; },
     birddog(j,t){ acostado(j,'cuadrupedia'); const u=pulso(t);         // brazo derecho al frente, pierna izquierda atrás, en línea
       j.hombroR.rotation.x=-1.6-1.55*u; j.caderaL.rotation.x=-1.6*(1-u); j.rodillaL.rotation.x=1.5*(1-u); },
-    catcamel(j,t){ acostado(j,'cuadrupedia'); const s=sin(t,.5); j.torso.rotation.x=0.3*s; j.cuello.rotation.x=0.3*s; },
+    catcamel(j,t){ acostado(j,'cuadrupedia'); const s=sin(t);   // arquea y redondea (gato ↔ camello)
+      j.torso.rotation.x=0.3*s; j.cuello.rotation.x=0.3*s; },
 
     /* ---- tumbado de lado ---- */
     sideleg(j,t){ acostado(j,'lado'); const u=pulso(t); j.caderaR.rotation.z=-0.8*u; },
     sideplank(j,t){ acostado(j,'lado'); j.hombroR.rotation.x=-1.5; j.codoR.rotation.x=-1.4;
-      j.root.position.y+=0.01*sin(t,.5); },
+      j.root.position.y+=0.01*pulso(t); },
 
     /* ---- técnica marcial: ver sección "Técnica marcial v2" más abajo ---- */
 
     burpee: null,   // se define más abajo como secuencia de poses (sentadilla → plancha → flexión → salto)
 
-    stretch(j,t){ const s=sin(t,.5); j.torso.rotation.z=0.3*s; j.hombroL.rotation.z=2.4; j.hombroR.rotation.z=-0.3; },
+    stretch(j,t){ const s=pulso(t); j.torso.rotation.z=0.3*s; j.hombroL.rotation.z=2.4; j.hombroR.rotation.z=-0.3; },
   };
 
   /* Animador a partir de una lista fija de poses {t,p} (misma técnica que las
@@ -395,26 +516,26 @@ const Dojo3D = (function(){
   /* Movimientos adicionales — uno propio para cada ejercicio */
   Object.assign(ANIM, {
     /* ---- estiramientos, cada uno el suyo ---- */
-    cuello(j,t){ const s=sin(t,.5), c=Math.cos(t*TAU*.5);              // semicírculos oreja–pecho–oreja y giros
-      j.cabeza.rotation.z=0.45*s; j.cabeza.rotation.x=0.28*Math.abs(c)-0.05; j.cabeza.rotation.y=0.35*sin(t,.25);
+    cuello(j,t){ const s=sin(t), c=Math.cos(t*TAU);                    // semicírculo oreja → pecho → oreja, ida y vuelta
+      j.cabeza.rotation.z=0.45*s; j.cabeza.rotation.x=0.30*Math.abs(c)-0.03;
       j.hombroL.rotation.z=0.2; j.hombroR.rotation.z=-0.2; },
-    cuadriceps(j,t){ const s=sin(t,.5);                                // de pie, talón derecho al glúteo sujeto con la mano
+    cuadriceps(j,t){ const s=pulso(t);                                // de pie, talón derecho al glúteo sujeto con la mano
       j.rodillaR.rotation.x=2.4+0.06*s; j.caderaR.rotation.x=0.2; j.torso.rotation.x=0.22;
       j.hombroR.rotation.x=0.85; j.hombroR.rotation.z=-0.12; j.codoR.rotation.x=-0.45;   // brazo atrás y abajo, la mano sujeta el pie
       j.hombroL.rotation.z=1.5; j.codoL.rotation.x=-0.2;              // brazo en cruz para el equilibrio
       j.root.rotation.z=0.02*s; },
-    isquios(j,t){ const u=0.85+0.15*sin(t,.5);                         // flexión de tronco al frente, brazos colgando
+    isquios(j,t){ const u=0.85+0.15*pulso(t);                         // flexión de tronco al frente, brazos colgando
       j.torso.rotation.x=1.35*u; j.cabeza.rotation.x=-0.3;
       j.hombroL.rotation.x=-1.3*u; j.hombroR.rotation.x=-1.3*u; j.hombroL.rotation.z=0.1; j.hombroR.rotation.z=-0.1;
       j.caderaL.rotation.x=-0.12*u; j.caderaR.rotation.x=-0.12*u; j.root.position.y=-0.03*u; },
-    hombros(j,t){ const s=sin(t,.5);                                   // brazo derecho cruzado al pecho, el izquierdo lo sujeta
+    hombros(j,t){ const s=pulso(t);                                   // brazo derecho cruzado al pecho, el izquierdo lo sujeta
       j.hombroR.rotation.x=-1.45; j.hombroR.rotation.z=0.75+0.06*s; j.codoR.rotation.x=-0.15;
       j.hombroL.rotation.x=-1.2; j.hombroL.rotation.z=-0.1; j.codoL.rotation.x=-1.9; j.torso.rotation.y=0.12*s; },
-    highknees(j,t){ const a=sin(t,1.3); j.caderaL.rotation.x=-1.5*Math.max(0,a); j.caderaR.rotation.x=-1.5*Math.max(0,-a);
+    highknees(j,t){ const a=sin(t); j.caderaL.rotation.x=-1.5*Math.max(0,a); j.caderaR.rotation.x=-1.5*Math.max(0,-a);
       j.rodillaL.rotation.x=1.0*Math.max(0,a); j.rodillaR.rotation.x=1.0*Math.max(0,-a);
       j.hombroL.rotation.x=0.7*a; j.hombroR.rotation.x=-0.7*a; j.codoL.rotation.x=-1.2; j.codoR.rotation.x=-1.2;
       j.root.position.y=0.03*Math.abs(a); },
-    buttkicks(j,t){ const a=sin(t,1.3); j.rodillaL.rotation.x=2.0*Math.max(0,a); j.rodillaR.rotation.x=2.0*Math.max(0,-a);
+    buttkicks(j,t){ const a=sin(t); j.rodillaL.rotation.x=2.0*Math.max(0,a); j.rodillaR.rotation.x=2.0*Math.max(0,-a);
       j.caderaL.rotation.x=0.1; j.caderaR.rotation.x=0.1;
       j.hombroL.rotation.x=0.5*a; j.hombroR.rotation.x=-0.5*a; j.codoL.rotation.x=-1.0; j.codoR.rotation.x=-1.0;
       j.root.position.y=0.03*Math.abs(a); },
@@ -426,7 +547,7 @@ const Dojo3D = (function(){
     lunge(j,t){ const b=pulso(t); j.caderaR.rotation.x=-0.6; j.rodillaR.rotation.x=1.3*b;
       j.caderaL.rotation.x=0.5; j.rodillaL.rotation.x=1.4*b; j.torso.rotation.x=0.1;
       j.hombroL.rotation.z=0.2; j.hombroR.rotation.z=-0.2; j.root.position.y=-0.22*b; j.root.position.z=0.1; },
-    horse(j,t){ const s=sin(t,.5); j.caderaL.rotation.z=0.5; j.caderaR.rotation.z=-0.5;
+    horse(j,t){ const s=pulso(t); j.caderaL.rotation.z=0.5; j.caderaR.rotation.z=-0.5;
       j.caderaL.rotation.x=-0.15; j.caderaR.rotation.x=-0.15; j.rodillaL.rotation.x=1.1; j.rodillaR.rotation.x=1.1;
       j.hombroL.rotation.x=-1.3; j.hombroL.rotation.z=0.5; j.codoL.rotation.x=-1.6;
       j.hombroR.rotation.x=-1.3; j.hombroR.rotation.z=-0.5; j.codoR.rotation.x=-1.6; j.root.position.y=-0.30+0.01*s; },
@@ -445,7 +566,7 @@ const Dojo3D = (function(){
       j.rodillaL.rotation.x=1.2-0.6*Math.max(0,a); j.rodillaR.rotation.x=1.2-0.6*Math.max(0,-a);
       j.hombroL.rotation.z=1.6; j.hombroR.rotation.z=-1.6; j.codoL.rotation.x=-1.4; j.codoR.rotation.x=-1.4; },
     /* meditación sentada (mokusō) — para los descansos */
-    meditar(j,t){ const s=sin(t,.35);
+    meditar(j,t){ const s=sin(t);
       j.root.position.y = -0.70 + 0.012*s;                 // sentado en el suelo, respira
       j.caderaL.rotation.x=-1.5; j.caderaL.rotation.z=0.7; j.rodillaL.rotation.x=1.95;  // piernas cruzadas
       j.caderaR.rotation.x=-1.5; j.caderaR.rotation.z=-0.7; j.rodillaR.rotation.x=1.95;
@@ -475,6 +596,10 @@ const Dojo3D = (function(){
       j.torso.rotation.y=0.15*s; },
   });
   ANIM.walklunge.dur=3.4; ANIM.sidestep.dur=2.6;      // ciclos más largos: cada paso se aprecia
+  /* Tempo real de cada ciclo (s). Las funciones usan ciclos ENTEROS en t∈[0,1): así el bucle
+     empalma sin saltos y la velocidad se regula aquí, no con frecuencias fraccionarias. */
+  ANIM.run.dur=0.9; ANIM.highknees.dur=0.9; ANIM.buttkicks.dur=0.9; ANIM.jump.dur=1.3;
+  ANIM.breathe.dur=4.5; ANIM.meditar.dur=5.5; ANIM.cuello.dur=6; ANIM.catcamel.dur=4.5;
 
   /* ============ Técnica marcial v2 — poses por fotogramas clave ============
      Cada golpe pasa por sus fases reales: guardia → chamber (recoger la
@@ -767,10 +892,10 @@ const Dojo3D = (function(){
     block: animadorMov('block'), elbow: animadorMov('elbow'), sword: animadorMov('sword'),
     lungepunch: animadorMov('lungepunch'), jumpkick: animadorMov('jumpkick'),
     flyingknee: animadorMov('flyingknee'), crescent: animadorMov('crescent'),
-    kamae(j,t){ mezclarPose(j, G_KEN, G_KEN, 0); const s=sin(t,.5);       // guardia viva: respira y flota
+    kamae(j,t){ mezclarPose(j, G_KEN, G_KEN, 0); const s=pulso(t);       // guardia viva: respira y flota
       j.root.position.y += 0.012*s; j.torso.rotation.x += 0.02*s; j.root.position.z = 0.12*sin(t); },
     balance(j,t){ mezclarPose(j, POSE_GRULLA, POSE_GRULLA, 0);            // grulla: rodilla alta, brazos en cruz
-      const s=sin(t,.5); j.root.rotation.z = 0.025*s; j.hombroL.rotation.z += 0.05*s; j.hombroR.rotation.z -= 0.05*s; },
+      const s=pulso(t); j.root.rotation.z = 0.025*s; j.hombroL.rotation.z += 0.05*s; j.hombroR.rotation.z -= 0.05*s; },
   });
   const POSE_GRULLA = {
     root_py:-0.03, caderaR_x:-1.55, rodillaR_x:2.20, rodillaL_x:0.12,
@@ -1172,6 +1297,7 @@ const Dojo3D = (function(){
     luzDir.color.copy(lin(f.luz[0])); luzDir.intensity=f.luz[1]; luzDir.position.set(f.luz[2][0],f.luz[2][1],f.luz[2][2]);
     luzHemi.color.copy(lin(f.hemi[0])); luzHemi.groundColor.copy(lin(f.hemi[1])); luzHemi.intensity=f.hemi[2];
     luzAmb.intensity=f.amb;
+    BORDE.value = f.borde!=null ? f.borde : 1;             // brillo de contorno del personaje según la luz
     renderer.toneMappingExposure = f.exp||1;
     E.sala.visible = !!f.paredes;
     E.cielo.visible = !!f.cielo;
@@ -1234,6 +1360,8 @@ const Dojo3D = (function(){
     const dur = (animador && animador.dur) || 2.0;    // duración de un ciclo (s)
     const t = congelaT!=null ? (congelaT%1) : ((ahora-t0)/1000/dur)%1;
     (animador||ANIM.breathe)(j, t);
+    if(fundido) aplicarFundido(j, ahora);             // enlaza suave con la pose del ejercicio anterior
+    vida(ahora);
     rig.updateMatrixWorld(true);
     if(glbActivo) retarget();                          // el modelo .glb copia la pose
     if(sombra){ sombra.position.x = rig.position.x; sombra.position.z = rig.position.z; }
@@ -1242,6 +1370,45 @@ const Dojo3D = (function(){
     renderer.render(scene, camera);
   }
   function detener(){ if(raf){ cancelAnimationFrame(raf); raf=null; } ultimoCuadro=0; }
+
+  /* Fundido entre ejercicios: al cambiar de animación se guarda la pose que se ve
+     en ese momento y, durante FUNDIDO_S, se interpola (slerp) hacia la nueva.
+     Así el personaje se levanta de la plancha o sale de la guardia en vez de
+     "teletransportarse" de una pose a otra.                                     */
+  const FUNDIDO_S = 0.65;
+  let fundido = null;
+  const _qF = new THREE.Quaternion();
+  function capturarFundido(){
+    if(!rig || !listo) return;
+    const j = rig.userData.j, poses = {};
+    for(const k in j) poses[k] = j[k].quaternion.clone();
+    fundido = {ini:performance.now(), poses, pos:j.root.position.clone()};
+  }
+  function aplicarFundido(j, ahora){
+    if(!fundido.dur)                                  // pasar del suelo a de pie (o al revés) necesita más tiempo
+      fundido.dur = fundido.poses.root.angleTo(j.root.quaternion) > 0.8 ? 1.1 : FUNDIDO_S;
+    const k = (ahora-fundido.ini)/1000/fundido.dur;
+    if(k>=1 || congelaT!=null){ fundido=null; return; }
+    const e = k*k*(3-2*k);
+    for(const n in j){ if(!fundido.poses[n]) continue;
+      _qF.copy(fundido.poses[n]).slerp(j[n].quaternion, e); j[n].quaternion.copy(_qF); }
+    j.root.position.lerpVectors(fundido.pos, j.root.position.clone(), e);
+  }
+  /* Vida: el pecho respira y los ojos parpadean aunque el ejercicio esté quieto */
+  let proxParpadeo = 0;
+  function vida(ahora){
+    const u = rig.userData;
+    if(u.pecho){ const r = Math.sin(ahora/1000*TAU/4.2); u.pecho.scale.set(1+0.012*r, 1+0.006*r, 0.64*(1+0.018*r)); }
+    if(u.ojos){
+      if(!proxParpadeo) proxParpadeo = ahora + 1500;
+      const d = ahora - proxParpadeo;                         // un parpadeo dura ~140 ms
+      let a = 1;
+      if(d>=0 && d<140) a = 0.12 + 0.88*Math.abs(d-70)/70;
+      else if(d>=140) proxParpadeo = ahora + 2200 + Math.random()*3200;
+      if(congelaT!=null) a = 1;                               // capturas y editor: ojos abiertos
+      u.ojos.forEach(o=>{ o.scale.y = a; });
+    }
+  }
 
   function animarAmbiente(dt){
     if(E.polvo && E.polvo.visible){                    // el polvo flota despacio en la luz
@@ -1265,7 +1432,7 @@ const Dojo3D = (function(){
     if(modoCam==='libre'){                                // Biblioteca/editor: órbita con el dedo, encuadra el cuerpo entero
       const R=radioLibre+1.5*vertical, ce=Math.cos(el);
       camera.position.set(Math.sin(az)*ce*R, 0.95+Math.sin(el)*R, Math.cos(az)*ce*R);
-      camera.lookAt(0,0.95,0);
+      camera.lookAt(0,miraLibre,0);
     } else if(modoCam==='ambiente'){                      // portada: paseo lento; en paisaje el personaje queda a la derecha del texto
       const a=0.28+0.42*Math.sin(reloj*0.11), R=4.3+1.7*vertical, y=1.25+0.08*Math.sin(reloj*0.07);
       camera.position.set(Math.sin(a)*R, y, Math.cos(a)*R);
@@ -1294,7 +1461,13 @@ const Dojo3D = (function(){
 
   /* ---------------- API pública ---------------- */
   let arqActual='respiracion';
-  function setEjercicio(arquetipo, arte){ arqActual=arquetipo; animador = resolverAnim(arquetipo, arte); t0 = performance.now(); mostrarBokken(); }
+  let arteActual=null;
+  function setEjercicio(arquetipo, arte){
+    arte = arte||null;
+    if(arquetipo===arqActual && arte===arteActual && animador) return;   // ya se está mostrando (p. ej. tras el cambio previo)
+    capturarFundido();
+    arqActual=arquetipo; arteActual=arte; animador = resolverAnim(arquetipo, arte); t0 = performance.now(); mostrarBokken();
+  }
   function mostrarBokken(){ if(rig && rig.userData.bokken) rig.userData.bokken.visible = /^(espada|kamae)$/.test(arqActual); }
   function setFondo(clave){ if(!fondos[clave]) return; fondoActual=clave; if(listo) aplicarFondo(fondos[clave]); }
   function setPersonaje(clave){
@@ -1307,7 +1480,7 @@ const Dojo3D = (function(){
       rig.visible=false;            // el motor procedural queda invisible, solo anima
       cargarGLB(p.archivo, p.color, p.giroY);
     } else {
-      scene.remove(rig); rig=construirPersonaje(p); scene.add(rig); rig.reset(); rig.visible=true; mostrarBokken();
+      scene.remove(rig); rig=construirPersonaje(p); scene.add(rig); rig.reset(); rig.visible=true; mostrarBokken(); fundido=null;
     }
   }
   function cicloFondo(){
@@ -1343,8 +1516,8 @@ const Dojo3D = (function(){
   /* Control fino del visor (editor, pruebas): congelar una fase t∈[0,1) (null = reproducir)
      y fijar la órbita de la cámara libre (az, el en radianes; R distancia) */
   function congelar(t){ congelaT = (t==null) ? null : t; }
-  let radioLibre = 6.6;
-  function orbita(a, e, R){ if(a!=null) az=a; if(e!=null) el=e; if(R) radioLibre=R; }
+  let radioLibre = 6.6, miraLibre = 0.95;
+  function orbita(a, e, R, y){ if(a!=null) az=a; if(e!=null) el=e; if(R) radioLibre=R; miraLibre = (y!=null) ? y : 0.95; }
   function vistaClase(){                           // restaura la cámara fija de la clase
     modoCam='clase'; modoLibre=false; congelaT=null;
     if(camera) colocarCamara();

@@ -19,10 +19,13 @@ fuerza, core, movilidad y respiración. Funciona **sin internet** y guarda todo 
 > tenerla como una app. Mantén la pantalla encendida durante la clase.
 
 ### Las clases generales
-- **Clase completa (≈60 min):** calentamiento → movilidad → piernas → tren superior →
+Entre técnica y técnica solo hay un **cambio de 5 s** (ya ves y oyes la siguiente), y
+una **pausa de agua de 2 min** cada 20–30 min de trabajo, al acabar un bloque.
+
+- **Clase completa (≈50 min):** calentamiento → movilidad → piernas → tren superior →
   core → técnica marcial → vuelta a la calma. Bloques de fuerza en 2 series.
-- **Express (≈30 min):** lo esencial cuando hay poco tiempo.
-- **Sorpréndeme (≈40–50 min):** clase variada generada al azar, distinta cada vez.
+- **Express (≈22 min):** lo esencial cuando hay poco tiempo.
+- **Sorpréndeme (≈35–45 min):** clase variada generada al azar, distinta cada vez.
 
 ### Entrenamiento por disciplina
 Cada arte marcial sigue la estructura de una **clase real** de su escuela:
@@ -31,12 +34,12 @@ Cada arte marcial sigue la estructura de una **clase real** de su escuela:
   brazos), **acondicionamiento** (elevaciones de piernas ×30 sin tocar el suelo,
   flexiones ×30, plancha), **kihon** (puños, bloqueos, patadas), **kata**, **kumite**
   (sparring de sombra), posturas y vuelta a la calma con mokusō.
-- **Muay Thai (≈50 min):** sesión de gimnasio tailandés — carrera y cuerda, sombra,
+- **Muay Thai (≈45 min):** sesión de gimnasio tailandés — carrera y cuerda, sombra,
   las ocho armas (puños, codos, rodillas, patadas), rounds de sparring de sombra y
   acondicionamiento final.
-- **Taekwondo (≈40 min):** carrera, movilidad, patadas de precisión, altura y velocidad
+- **Taekwondo (≈37 min):** carrera, movilidad, patadas de precisión, altura y velocidad
   (dollyo, dwit, naeryo chagi) y kyorugi (sparring de sombra).
-- **Kenjutsu (≈30 min):** cortes (suburi men, kesa giri, dō giri), guardia y desplazamientos.
+- **Kenjutsu (≈25 min):** cortes (suburi men, kesa giri, dō giri), guardia y desplazamientos.
   Usa un bokken o un palo.
 
 Hay **86 ejercicios** con **40 figuras animadas distintas** (cada movimiento tiene la suya: cada
@@ -194,7 +197,12 @@ La voz del sensei avisa de tener ~2 m libres.
   `ANIM_ARTE` con clave `'arquetipo@arte'` si es una variante de estilo).
 - **Crear/editar una rutina:** edita `RUTINAS` en `js/ejercicios.js`. Cada rutina son
   **bloques** con `rep` (nº de series) y la lista de `ids` de ejercicios.
-- **Cambiar descansos:** campo `descanso` (segundos) de cada rutina.
+- **Opiniones de los alumnos:** al terminar una clase aparece un formulario (estrellas,
+  intensidad y comentario). Se guarda en `localStorage` (`dojo_opiniones`) y al enviarlo
+  abre un issue de GitHub ya rellenado en el repositorio (`REPO_OPINION` en `js/app.js`).
+- **Cambiar descansos:** constante `RITMO` en `js/app.js`: segundos de cambio entre
+  técnicas (5 s), cambio de lado (3 s) y el descanso largo (2 min), que llega al terminar
+  un bloque tras 20 min de trabajo (o a los 30 min aunque el bloque siga).
 
 ## Referencias: en qué se basan las clases
 

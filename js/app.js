@@ -39,6 +39,7 @@ function renderInicio(){
       <span class="dur">${r.dur}</span>
       <h3>${r.nombre}</h3>
       <p>${r.desc}</p>
+      <span class="tarjeta-meta"><span>${resumenRutina(r)}</span><span class="tarjeta-fig" aria-hidden="true">${figuraSVG(FIGURA_TARJETA[k]||'respiracion')}</span></span>
     </button>`;
   const entradas = Object.entries(RUTINAS);
   document.getElementById('tarjetas-rutinas').innerHTML =
@@ -52,6 +53,16 @@ function renderInicio(){
   document.getElementById('stat-sesiones').textContent = ses.length;
   document.getElementById('stat-minutos').textContent = minutos;
   document.getElementById('stat-racha').textContent = calcularRacha(ses);
+}
+
+/* Figura que ilustra cada clase en su tarjeta, y resumen (técnicas y pausas de agua) */
+const FIGURA_TARJETA = {completa:'patada', express:'jumping', sorprende:'burpee',
+  karate:'puno', muaythai:'rodillazo', taekwondo:'roundhouse', kenjutsu:'espada'};
+function resumenRutina(r){
+  if(r.generar) return 'Al azar · 1 pausa';
+  const pasos = construirTimeline(itemsDeRutina(r));
+  const n = pasos.filter(p=>p.tipo==='ejercicio').length, d = pasos.filter(p=>p.tipo==='descanso').length;
+  return `${n} técnicas · ` + (d ? `${d} pausa${d>1?'s':''}` : 'sin pausa');
 }
 
 function calcularRacha(ses){
@@ -137,7 +148,10 @@ function construirCues(p){
     });
     if(dur>=12) cues.push({at:dur-5, txt:eligeFrase(FRASES.final)});
   } else if(p.tipo==='descanso'){
-    cues.push({at:Math.min(3,p.dur*0.4), txt:eligeFrase(FRASES.descanso)});
+    cues.push({at:4, txt:eligeFrase(FRASES.descanso)});
+    if(p.dur>=90) cues.push({at:p.dur-60, txt:'Sigue respirando despacio. Queda un minuto'});
+    const sig = estado.pasos[estado.pasos.indexOf(p)+1];
+    if(sig && sig.ej) cues.push({at:p.dur-10, txt:'Diez segundos. Vuelve a tu sitio para '+sig.ej.nombre});
   }
   return cues.sort((a,b)=>a.at-b.at);
 }
@@ -168,15 +182,38 @@ function itemsDeRutina(r){
   return idsDeRutina(r).map(id=>({id, bloque:(POR_ID[id] && CATEGORIAS[POR_ID[id].categoria]) ? CATEGORIAS[POR_ID[id].categoria].nombre : ''}));
 }
 
-function construirTimeline(items, descanso){
+/* Ritmo de la clase: entre técnica y técnica solo hay un CAMBIO breve (colocarse y
+   ver la siguiente), y el DESCANSO de verdad llega cada 20–30 min de trabajo, al
+   terminar un bloque (como la pausa para beber agua de una clase real).          */
+const RITMO = {
+  cambio:5,            // s entre ejercicios
+  cambioLado:3,        // s para cambiar de lado en ejercicios unilaterales
+  descanso:120,        // s del descanso largo
+  descansoDesde:20*60, // trabajo acumulado a partir del cual se descansa al acabar el bloque
+  descansoMax:30*60,   // si el bloque es muy largo, se descansa igual al llegar aquí
+  sinDescansoFinal:5*60, // no descansar si queda menos que esto de clase
+};
+function construirTimeline(items){
   const pasos = [{tipo:'prep', dur:10, bloque:'Saludo'}];
-  items.forEach((it,idx)=>{
+  const total = items.reduce((a,it)=>{ const ej=POR_ID[it.id]; return a + (ej ? ej.duracion*(ej.lado?2:1) : 0); }, 0);
+  let trabajo = 0, desdeDescanso = 0, bloqueAnt = null;
+  items.forEach(it=>{
     const ej = POR_ID[it.id]; if(!ej) return;
+    if(bloqueAnt!==null){
+      const finBloque = it.bloque!==bloqueAnt;
+      const quedaClase = total - trabajo >= RITMO.sinDescansoFinal;
+      if(quedaClase && ((finBloque && desdeDescanso>=RITMO.descansoDesde) || desdeDescanso>=RITMO.descansoMax)){
+        pasos.push({tipo:'descanso', dur:RITMO.descanso, bloque:'Descanso · agua'});
+        desdeDescanso = 0;
+      } else pasos.push({tipo:'cambio', dur:RITMO.cambio, bloque:it.bloque});
+    }
     const lados = ej.lado ? ['Lado derecho','Lado izquierdo'] : [null];
     lados.forEach((suf,li)=>{
-      if(!(idx===0 && li===0)) pasos.push({tipo:'descanso', dur:descanso, bloque:it.bloque});
+      if(li>0) pasos.push({tipo:'cambio', dur:RITMO.cambioLado, bloque:it.bloque, lado:true});
       pasos.push({tipo:'ejercicio', ej, dur:ej.duracion, suf, bloque:it.bloque});
+      trabajo += ej.duracion; desdeDescanso += ej.duracion;
     });
+    bloqueAnt = it.bloque;
   });
   return pasos;
 }
@@ -187,7 +224,7 @@ function iniciarClase(key){
   taiko();                  // el tambor abre la clase
   // las puertas shoji se cierran, cambia la escena detrás y se abren sobre el dojo
   cerrarShoji(()=>{
-    estado.pasos = construirTimeline(itemsDeRutina(r), r.descanso||15);
+    estado.pasos = construirTimeline(itemsDeRutina(r));
     estado.i = 0;
     estado.pausado = false;
     estado.rutina = {key, nombre:r.nombre};
@@ -304,14 +341,30 @@ function cargarPaso(i, anunciar){
     sig.innerHTML = proximo ? `<span>Empezamos con: <b>${proximo}</b></span>` : '';
     cont.classList.add('descanso');
   }
-  else { // descanso
-    chip.style.display='none';
+  else if(p.tipo==='cambio'){               // transición breve: ya se ve (y se lee) la siguiente técnica
+    const sigP = estado.pasos[i+1], ej = sigP && sigP.ej;
+    chip.textContent = p.lado ? 'Cambia de lado' : 'Siguiente';
+    chip.style.display='';
+    if(ej){
+      pintarFigura(ej.arquetipo, ej.arte);
+      nombre.textContent = ej.nombre + (sigP.suf? ' · '+sigP.suf : '');
+      const tag = ej.tipo==='reps' ? `${ej.reps} repeticiones` : `${ej.duracion}s`;
+      meta.innerHTML = 'Colócate · ' + tag + (ej.pesas? ' &nbsp;·&nbsp; 🏋️ con pesas':'') + (ej.espacio? ' &nbsp;·&nbsp; ↔️ necesita espacio':'');
+      instr.innerHTML = ej.instrucciones.map(t=>`<li>${t}</li>`).join('');
+      resp.textContent = '🫁 '+ej.respiracion;
+    }
+    sig.innerHTML = '';
+    cont.classList.add('descanso');
+  }
+  else { // descanso largo (cada 20–30 min de trabajo)
+    chip.textContent = 'Descanso';
+    chip.style.display='';
     pintarFigura('meditacion');
-    nombre.textContent = 'Descanso';
-    meta.textContent = 'Recupera el aliento';
-    instr.innerHTML = '<li>Sacude brazos y piernas</li><li>Bebe un sorbo de agua</li>';
-    resp.textContent = '🫁 Inhala por la nariz, exhala largo por la boca.';
-    sig.innerHTML = proximo ? `<span>Prepárate: <b>${proximo}</b></span>` : '';
+    nombre.textContent = 'Pausa para el agua';
+    meta.textContent = `${Math.round(p.dur/60)} min · llevas ${minutosHechos(i)} min de clase`;
+    instr.innerHTML = '<li>Bebe agua a sorbos pequeños</li><li>Camina un poco y sacude brazos y piernas</li><li>Seca el sudor de manos y cara</li><li>Si quieres seguir ya, pulsa ⏭</li>';
+    resp.textContent = '🫁 Inhala por la nariz en 4 tiempos, exhala largo por la boca en 6.';
+    sig.innerHTML = proximo ? `<span>Al volver: <b>${proximo}</b></span>` : '';
     cont.classList.add('descanso');
   }
 
@@ -329,6 +382,9 @@ function pintarContador(){
     cont.classList.remove('descanso'); cont.classList.add('alerta');
   }
   document.getElementById('tiempo-total-restante').textContent = formatoTiempo(tiempoRestanteTotal());
+  const trazo = document.getElementById('contador-trazo');          // pincelada que se consume con el tiempo del paso
+  trazo.style.transform = `scaleX(${p.dur ? Math.max(0, estado.restante/p.dur) : 0})`;
+  trazo.className = p.tipo==='ejercicio' ? (estado.restante<=3 ? 'alerta' : '') : 'calma';
 }
 
 function pintarProgreso(){
@@ -339,6 +395,9 @@ function pintarProgreso(){
   document.getElementById('progreso-relleno').style.width = pct+'%';
 }
 
+function minutosHechos(i){
+  return Math.round(estado.pasos.slice(0,i).reduce((a,p)=>a+p.dur,0)/60);
+}
 function tiempoRestanteTotal(){
   let t = estado.restante;
   for(let k=estado.i+1;k<estado.pasos.length;k++) t += estado.pasos[k].dur;
@@ -387,11 +446,64 @@ function terminarClase(completada){
     document.getElementById('fin-minutos').textContent = minutos;
     document.getElementById('fin-ejercicios').textContent = estado.pasos.filter(p=>p.tipo==='ejercicio').length;
     document.getElementById('fin-racha').textContent = calcularRacha(leerSesiones());
+    prepararOpinion();
     document.getElementById('fin-clase').classList.remove('oculto');
     return;                              // el dojo sigue detrás hasta que saludas (Oss)
   }
   irA('inicio');
 }
+/* ---------------- Opinión del alumno tras la clase ----------------
+   Sin servidor: la opinión se guarda en localStorage y, al enviar, se abre
+   un issue de GitHub ya rellenado para que el alumno lo publique.        */
+const REPO_OPINION = 'https://github.com/arigatodon/dojo/issues/new';
+const LS_OPINION = 'dojo_opiniones';
+const opinion = {estrellas:0, intensidad:null};
+function prepararOpinion(){
+  opinion.estrellas = 0; opinion.intensidad = null;
+  document.getElementById('opinion-texto').value = '';
+  document.getElementById('opinion-nota').textContent = 'Se abre GitHub para publicarlo. También queda guardado aquí.';
+  document.getElementById('opinion-enviar').disabled = false;
+  pintarOpinion();
+}
+function pintarOpinion(){
+  document.querySelectorAll('.estrellas button').forEach(b=>{
+    const v=+b.dataset.v; b.classList.toggle('on', v<=opinion.estrellas); b.setAttribute('aria-checked', v===opinion.estrellas);
+  });
+  document.querySelectorAll('.chips-opinion button').forEach(b=>{
+    const on = b.dataset.i===opinion.intensidad; b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+  });
+}
+document.addEventListener('click', e=>{
+  const est = e.target.closest('.estrellas button');
+  if(est){ opinion.estrellas = +est.dataset.v; pintarOpinion(); return; }
+  const chip = e.target.closest('.chips-opinion button');
+  if(chip){ opinion.intensidad = opinion.intensidad===chip.dataset.i ? null : chip.dataset.i; pintarOpinion(); }
+});
+function enviarOpinion(ev){
+  ev.preventDefault();
+  const texto = document.getElementById('opinion-texto').value.trim();
+  const nota = document.getElementById('opinion-nota');
+  if(!opinion.estrellas && !opinion.intensidad && !texto){ nota.textContent = 'Elige unas estrellas o escribe algo antes de enviar.'; return; }
+  const INT = {suave:'Suave', justa:'Justa', dura:'Muy dura'};
+  const clase = (estado.rutina && estado.rutina.nombre) || 'Clase';
+  const minutos = document.getElementById('fin-minutos').textContent;
+  const registro = {fecha:new Date().toISOString(), clase, minutos:+minutos||0,
+                    estrellas:opinion.estrellas, intensidad:opinion.intensidad, texto};
+  try{ const prev = JSON.parse(localStorage.getItem(LS_OPINION)||'[]'); prev.push(registro);
+       localStorage.setItem(LS_OPINION, JSON.stringify(prev.slice(-50))); }catch(e){}
+  const titulo = `Opinión: ${clase}` + (opinion.estrellas ? ` · ${'★'.repeat(opinion.estrellas)}` : '');
+  const cuerpo = [
+    `**Clase:** ${clase} (${minutos} min)`,
+    `**Valoración:** ${opinion.estrellas ? opinion.estrellas+'/5' : '—'}`,
+    `**Intensidad:** ${opinion.intensidad ? INT[opinion.intensidad] : '—'}`,
+    '', texto || '_(sin comentario)_',
+  ].join('\n');
+  const url = REPO_OPINION + '?labels=feedback&title=' + encodeURIComponent(titulo) + '&body=' + encodeURIComponent(cuerpo);
+  window.open(url, '_blank', 'noopener');
+  nota.textContent = '¡Gracias! Tu opinión quedó guardada. Publícala en la pestaña de GitHub.';
+  document.getElementById('opinion-enviar').disabled = true;
+}
+
 function cerrarFin(){
   document.getElementById('fin-clase').classList.add('oculto');
   irA('inicio');
@@ -399,9 +511,15 @@ function cerrarFin(){
 
 /* ---------------- Voz del sensei ---------------- */
 function anunciarPaso(p, proximo){
-  if(p.tipo==='ejercicio') anunciar(p.ej.nombre + (p.suf? ', '+p.suf:'') + '. ' + eligeFrase(FRASES.inicio));
+  const ant = estado.pasos[estado.i-1];
+  if(p.tipo==='ejercicio'){
+    // tras un cambio el nombre ya se dijo: solo la señal de empezar
+    if(ant && ant.tipo==='cambio') anunciar('¡Ya! '+eligeFrase(FRASES.inicio));
+    else anunciar(p.ej.nombre + (p.suf? ', '+p.suf:'') + '. ' + eligeFrase(FRASES.inicio));
+  }
   else if(p.tipo==='prep') anunciar('Prepárate. Empezamos con '+(proximo||'la clase')+'. '+eligeFrase(FRASES.inicio));
-  else if(proximo) anunciar('Descanso. Prepárate para '+proximo);
+  else if(p.tipo==='cambio') anunciar(p.lado ? 'Cambia de lado' : 'Siguiente: '+(proximo||''));
+  else anunciar('Descanso de '+Math.round(p.dur/60)+' minutos. Bebe agua.');
 }
 function anunciar(texto){
   if(!vozActiva) return;
