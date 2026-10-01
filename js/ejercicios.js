@@ -229,6 +229,118 @@ const BIBLIOTECA = [
    instrucciones:['Imagina un oponente frente a ti','Combina desplazamiento, bloqueo y contraataque','Entra y sal de la distancia, no te quedes plantado','Guardia siempre arriba'],
    respiracion:'Exhala en cada técnica, kiai al rematar.'},
 
+  /* ================= KARATE · KIHON DE DOJO =================
+     Técnicas y ejercicios tomados de clases reales de karate en casa (2020–2023):
+     Karate Dojo waKu (Yusuke Nagano), KarateTeamRamirez (Alberto Ramírez) e Irimi
+     Madrid. Patrón común: series de 8–10, primero despacio y luego a velocidad,
+     patadas descompuestas en tiempos, bloqueo + contraataque, y acondicionamiento
+     mezclado con técnica. En la rutina, 'id:lento' / 'id:rapido' / 'id:fuerte'.   */
+  /* --- Posturas (dachi) --- */
+  {id:'zenkutsu_dachi', nombre:'Zenkutsu-dachi (postura adelantada)', arquetipo:'guardia_karate', categoria:'marcial', tipo:'tiempo', duracion:30, lado:true, arte:'karate',
+   instrucciones:['Pierna de atrás estirada; la de delante flexionada, rodilla sobre los dedos del pie','Dos tercios del peso adelante, espalda recta, mirada horizontal','Un puño al frente, el otro en la cadera (hikite)','Aguanta sin subir: la altura la pones tú'],
+   respiracion:'Respira al hara, lento; la postura no se mueve.'},
+  /* --- Puños (zuki) en el sitio --- */
+  {id:'choku_zuki', nombre:'Choku-zuki (puño directo alterno)', arquetipo:'puno', categoria:'marcial', tipo:'reps', reps:10, duracion:30, arte:'karate',
+   instrucciones:['Pies paralelos (heiko-dachi), rodillas sueltas','El puño sale rozando las costillas y gira al final','La otra mano vuelve a la cadera: las dos manos trabajan','Golpea siempre al mismo punto, al centro del pecho'],
+   respiracion:'Exhala corto en cada golpe.'},
+  {id:'kiba_zuki', nombre:'Choku-zuki en kiba-dachi', arquetipo:'puno_kiba', categoria:'marcial', tipo:'reps', reps:10, duracion:30, arte:'karate',
+   instrucciones:['Postura del jinete: pies anchos y paralelos, rodillas hacia fuera','Las piernas no se mueven, "como una roca"','Puño alterno al centro, hikite a la cadera','Aprieta al final de cada golpe (kime) y relaja'],
+   respiracion:'Exhala en el impacto, inhala al recoger.'},
+  {id:'sanbon_zuki', nombre:'Sanbon-zuki (tres puños: jodan · chudan · chudan)', arquetipo:'puno', categoria:'marcial', tipo:'reps', reps:6, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Desde zenkutsu-dachi: puño alto adelantado y dos al medio','Marca los tres golpes; el tercero es el más fuerte','Ritmo: uno · pausa · dos-tres','La cadera gira en el segundo y vuelve en el tercero'],
+   respiracion:'Tres exhalaciones cortas, kiai en el tercero.'},
+  /* --- Bloqueos (uke) --- */
+  {id:'uchi_uke', nombre:'Uchi-uke (bloqueo de dentro afuera)', arquetipo:'bloqueo_interior', categoria:'marcial', tipo:'reps', reps:12, duracion:35, lado:true, arte:'karate',
+   instrucciones:['Carga el puño bajo la axila contraria','El antebrazo barre de dentro hacia fuera','Codo a un puño de las costillas, puño a la altura del hombro','Tronco de lado (hanmi) al terminar'],
+   respiracion:'Exhala al bloquear.'},
+  {id:'gedan_barai', nombre:'Gedan-barai (barrido bajo)', arquetipo:'bloqueo_bajo', categoria:'marcial', tipo:'reps', reps:12, duracion:35, lado:true, arte:'karate',
+   instrucciones:['Carga el puño junto a la oreja contraria','Barre hacia abajo con el filo del antebrazo','Termina un puño por encima de la rodilla adelantada','Hikite fuerte: la otra mano a la cadera'],
+   respiracion:'Exhala en el barrido.'},
+  {id:'shuto_uke', nombre:'Shuto-uke en kokutsu-dachi (mano de sable)', arquetipo:'shuto', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Peso atrás en kokutsu-dachi, tronco de lado','La mano abierta sale desde la oreja contraria y corta hacia fuera','La otra mano se recoge abierta al plexo','Codo a un puño del cuerpo; dedos juntos y tensos'],
+   respiracion:'Exhala al bloquear; el cuerpo "absorbe" hacia atrás.'},
+  {id:'escalera_uke', nombre:'Age · chudan · gedan (tres bloqueos, mismo brazo)', arquetipo:'bloqueo', categoria:'marcial', tipo:'reps', reps:6, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Uno: age-uke alto; dos: soto-uke medio; tres: gedan-barai bajo','Mismo brazo, siempre cruzando para cargar','La mano libre en hikite todo el tiempo','Despacio para ver la trayectoria, luego con intensidad'],
+   respiracion:'Una exhalación por bloqueo.'},
+  /* --- Bloqueo + contraataque --- */
+  {id:'age_gyaku', nombre:'Age-uke + gyaku-zuki (bloqueo y contra)', arquetipo:'bloqueo', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Bloquea alto con el brazo adelantado, cadera de lado (hanmi)','Gira la cadera al frente y lanza el puño atrasado','La mano que bloqueó vuelve a la cadera','Solo se mueve la cadera: la rodilla de atrás no se dobla'],
+   respiracion:'Exhala en el bloqueo y otra vez en el golpe.'},
+  {id:'gedan_gyaku', nombre:'Gedan-barai + gyaku-zuki', arquetipo:'bloqueo_bajo', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Barrido bajo con el brazo adelantado','Sin mover los pies, rotación de cadera y puño inverso al medio','Ve de menos a más: primero suave, luego fluido','Al final mantén la posición un instante (kime)'],
+   respiracion:'Exhala en cada técnica.'},
+  {id:'soto_uchi', nombre:'Soto-uke → uchi-uke (misma mano, kiba-dachi)', arquetipo:'bloqueo_interior', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate',
+   instrucciones:['En kiba-dachi, pies quietos','Soto-uke: carga desde la oreja y barre hacia dentro','Uchi-uke: carga por debajo del otro brazo y barre hacia fuera','Codo en V, puño al centro; hikite con la otra mano'],
+   respiracion:'Exhala en cada bloqueo; aprieta brazos, cadera y abdomen al final.'},
+  {id:'kiba_zenkutsu', nombre:'Cambio de peso kiba ↔ zenkutsu + gyaku-zuki', arquetipo:'puno', categoria:'marcial', tipo:'reps', reps:10, duracion:45, arte:'karate',
+   instrucciones:['Desde kiba-dachi gira los pies y pasa a zenkutsu lateral','Al llegar, gyaku-zuki; vuelve al centro con doble puño','Alterna izquierda y derecha','No subas la cadera en ningún momento del giro'],
+   respiracion:'Exhala al golpear, inhala al volver al centro.'},
+  /* --- Patadas (geri) --- */
+  {id:'mae_geri_zenkutsu', nombre:'Mae-geri desde zenkutsu (pierna atrasada)', arquetipo:'patada', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Desde zenkutsu, sube la rodilla de la pierna de atrás','Patea con la bola del pie, dedos arriba','Recoge (freeze) y vuelve atrás a la postura, sin balancearte','La mano del mismo lado acompaña: cambio de guardia y vuelta'],
+   respiracion:'Exhala en la patada, inhala al volver.'},
+  {id:'kekomi_suelo', nombre:'Kekomi desde el suelo (talón fuera)', arquetipo:'abduccion', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Tumbado de lado, codo apoyado, ombligo mirando al frente (no arriba)','Dedos del pie al frente: sube la pierna hasta 45° y baja','Luego recoge la rodilla y empuja con el talón en línea','Sentirás el lateral de la cadera: ahí está la patada'],
+   respiracion:'Exhala al subir o empujar.'},
+  {id:'yoko_kekomi', nombre:'Yoko-geri kekomi (patada lateral de empuje)', arquetipo:'patada_lateral', categoria:'marcial', tipo:'reps', reps:8, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Desde guardia, acerca el pie de atrás y carga la rodilla al pecho, de lado','Empuja con el talón en línea recta, cadera encima','Recoge la rodilla antes de bajar','Primero la pierna adelantada; después la de atrás girando la cadera'],
+   respiracion:'Exhala fuerte al empujar.'},
+  {id:'uchi_mawashi', nombre:'Uchi-mawashi-geri (circular por dentro)', arquetipo:'creciente', categoria:'marcial', tipo:'reps', reps:8, duracion:40, lado:true, arte:'karate',
+   instrucciones:['Carga la rodilla al frente, cruzada hacia el otro lado','La pierna dibuja el arco de dentro hacia fuera','Golpea con el empeine; snap de la rodilla hacia abajo','Peso en el centro: no te cuelgues de la pierna de apoyo'],
+   respiracion:'Exhala en el latigazo.'},
+  {id:'mae_yoko_mawashi', nombre:'Mae → yoko → mawashi (tres patadas, misma pierna)', arquetipo:'patada', categoria:'marcial', tipo:'reps', reps:5, duracion:45, lado:true, arte:'karate',
+   instrucciones:['Sin apoyar el pie entre patadas: frontal, lateral y circular','Siempre sube la rodilla primero','Altura media; mejor baja y limpia que alta y torcida','Equilibrio: mirada al frente, brazos en guardia'],
+   respiracion:'Una exhalación por patada.'},
+  {id:'mawashi_piso', nombre:'Mawashi-geri trasera: patea, pisa y cambia de guardia', arquetipo:'roundhouse', categoria:'marcial', tipo:'reps', reps:10, duracion:45, arte:'karate',
+   instrucciones:['La pierna de atrás sube al frente y de lado, talón al glúteo','Patea y PISA donde estaba el pie delantero','El otro pie va atrás: ya estás en la otra guardia','Alterna sola: la siguiente va con la nueva pierna trasera'],
+   respiracion:'Exhala al patear, inhala al pisar.'},
+  /* --- Kihon idō: con desplazamiento (≈2 m) --- */
+  {id:'ayumi_ashi', nombre:'Ayumi-ashi: pasos en zenkutsu-dachi', arquetipo:'zancada_andando', categoria:'marcial', tipo:'reps', reps:8, duracion:40, arte:'karate', espacio:true,
+   instrucciones:['Manos en la cadera; solo las piernas','Avanza cerrando el pie por el centro y abre a zenkutsu','Al pisar, flexiona la rodilla y congela un segundo','No subas la cadera entre paso y paso; ida y vuelta'],
+   respiracion:'Inhala al juntar, exhala al asentar el paso.'},
+  {id:'kizami_yori', nombre:'Kizami-zuki con yori-ashi (entrada)', arquetipo:'avance_puno', categoria:'marcial', tipo:'reps', reps:10, duracion:40, lado:true, arte:'karate', espacio:true,
+   instrucciones:['Rodillas flexionadas; empuja con la pierna de atrás','El puño adelantado llega a la vez que el pie','Al caer, la rodilla y los dedos apuntan al frente','Vuelve atrás ligero, listo para el siguiente'],
+   respiracion:'Exhala al entrar.'},
+  {id:'paso_age_gyaku', nombre:'Paso + age-uke → gyaku-zuki → paso atrás', arquetipo:'avance_puno', categoria:'marcial', tipo:'reps', reps:8, duracion:45, lado:true, arte:'karate', espacio:true,
+   instrucciones:['Da un paso adelante bloqueando alto','Sin mover los pies, gira la cadera y golpea con el puño inverso','Paso atrás a la guardia','Primero suave, luego con velocidad'],
+   respiracion:'Exhala en el bloqueo y en el golpe.'},
+  {id:'mae_geri_oi', nombre:'Mae-geri + oi-zuki (patea, pisa y golpea)', arquetipo:'avance_puno', categoria:'marcial', tipo:'reps', reps:8, duracion:45, arte:'karate', espacio:true,
+   instrucciones:['Patada frontal con la pierna de atrás','Pisa al frente en zenkutsu y, justo al pisar, puño del mismo lado','Pie, mano y respiración llegan a la vez','Alterna los lados avanzando; si te falta sitio, vuelve atrás'],
+   respiracion:'Exhala en la patada y de nuevo en el puño.'},
+  /* --- Kumite: reacción y combinaciones --- */
+  {id:'kizami_reaccion', nombre:'Kizami-zuki a la voz (reacción)', arquetipo:'puno', categoria:'marcial', tipo:'tiempo', duracion:30, lado:true, arte:'karate', reaccion:true,
+   instrucciones:['Guardia relajada, peso 50/50','Cuando el sensei diga "¡ya!", golpea sin pensar','El brazo sale como un látigo y vuelve','No te inclines: el eje cabeza–coxis recto'],
+   respiracion:'Exhala corto en cada golpe.'},
+  {id:'combo_gyaku_shuto', nombre:'Gyaku-zuki + shuto-uke atrás (kokutsu)', arquetipo:'shuto', categoria:'marcial', tipo:'reps', reps:8, duracion:45, lado:true, arte:'karate',
+   instrucciones:['Baja y golpea con el puño inverso','Retrasa el pie de delante a kokutsu-dachi bloqueando en shuto','El peso pasa del centro a la pierna de atrás','Primero en dos tiempos, luego en uno'],
+   respiracion:'Exhala en el golpe y en el bloqueo.'},
+  {id:'combo_gyaku_shuto_geri', nombre:'Gyaku-zuki + shuto-uke + mae-geri', arquetipo:'patada', categoria:'marcial', tipo:'reps', reps:6, duracion:45, lado:true, arte:'karate', espacio:true,
+   instrucciones:['Golpe inverso; retrocede a kokutsu con shuto-uke','Desliza el pie de atrás y patea con la pierna adelantada','Tres tiempos: ichi · ni · san','Luego todo seguido, en una sola cuenta'],
+   respiracion:'Tres exhalaciones; kiai en la patada.'},
+  {id:'combo_cinco', nombre:'Combinación de cinco (puño · bloqueo · cambio · uchi-uke · mae-geri)', arquetipo:'avance_puno', categoria:'marcial', tipo:'reps', reps:5, duracion:60, lado:true, arte:'karate', espacio:true,
+   instrucciones:['Gyaku-zuki; shuto-uke atrás','Cambio de guardia con puño; paso atrás con uchi-uke','Paso al frente con mae-geri y recoge en guardia','Despacio hasta que salga limpio; la velocidad al final'],
+   respiracion:'Exhala en cada técnica; kiai en la última.'},
+  {id:'combo_final', nombre:'Paso atrás + uchi-uke → doble patada → gyaku-zuki', arquetipo:'patada', categoria:'marcial', tipo:'reps', reps:5, duracion:60, lado:true, arte:'karate', espacio:true,
+   instrucciones:['Retrocede un paso girando la cadera al frente y bloquea (uchi-uke)','Patada con la pierna de atrás y, casi sin apoyar, otra con la contraria','Cae equilibrado y remata con gyaku-zuki','Equilibrio tras las patadas: precisión antes que potencia'],
+   respiracion:'Kiai en el puño final.'},
+  /* --- Acondicionamiento de karateka ("un cuerpo fuerte hace la técnica fuerte") --- */
+  {id:'escalera_flex_zuki', nombre:'Escalera: flexiones + 10 choku-zuki (10→5)', arquetipo:'flexion', categoria:'superior', tipo:'tiempo', duracion:180, arte:'karate',
+   instrucciones:['10 flexiones, levántate de un salto y 10 puños fuertes','Luego 9 flexiones + 10 puños, 8 + 10… hasta 5','Flexión: pecho al suelo; si cuesta, rodillas apoyadas','Los puños con kime: cuerpo fuerte, técnica fuerte'],
+   respiracion:'Exhala en cada empuje y en cada puño.'},
+  {id:'escalera_salto_geri', nombre:'Escalera: sentadillas con salto + 10 mae-geri (10→6)', arquetipo:'jumpsquat', categoria:'piernas', tipo:'tiempo', duracion:180, arte:'karate',
+   instrucciones:['10 sentadillas con salto y 10 patadas frontales alternas','Después 9 + 10, 8 + 10… hasta 6','Si no puedes saltar, media sentadilla sin parar','Recupera 5 segundos entre rondas y sigue'],
+   respiracion:'Exhala en el salto y en la patada.'},
+  {id:'alitas_pollo', nombre:'Alitas de pollo (core de karateka)', arquetipo:'legraise', categoria:'core', tipo:'tiempo', duracion:40,
+   instrucciones:['Boca arriba, piernas elevadas sin tocar el suelo','Brazos arriba y abajo "aleteando", hombros despegados','Aguanta cuando el sensei lo pida','Lumbar pegada al suelo'],
+   respiracion:'Respira corto y continuo, no aguantes el aire.'},
+  /* --- Estiramiento de suelo (cierre de clase) --- */
+  {id:'estira_abierto', nombre:'Estiramiento sentado, piernas abiertas', arquetipo:'isquios', categoria:'calma', tipo:'tiempo', duracion:40,
+   instrucciones:['Sentado, piernas abiertas','Inclínate hacia una pierna, luego la otra y al centro','Espalda larga, cede al exhalar','Llega hasta la tensión, nunca al dolor'],
+   respiracion:'Inhala alargando, exhala ganando rango.'},
+  {id:'mariposa', nombre:'Mariposa (aductores)', arquetipo:'isquios', categoria:'calma', tipo:'tiempo', duracion:30,
+   instrucciones:['Sentado, plantas de los pies juntas','Espalda erguida, las rodillas "aletean" suave','Luego inclínate al frente desde la cadera'],
+   respiracion:'Exhala y deja caer las rodillas.'},
+
   /* ================= MUAY THAI (มวยไทย) ================= */
   {id:'jab_cross', nombre:'Jab–cross (sombra)', arquetipo:'puno', categoria:'marcial', tipo:'tiempo', duracion:45, arte:'muaythai',
    instrucciones:['Guardia alta, mentón abajo','Jab de la mano adelantada, luego cross girando cadera','Vuelve siempre a la guardia'],
@@ -313,7 +425,7 @@ const POR_ID = Object.fromEntries(BIBLIOTECA.map(e=>[e.id,e]));
    la fuerza en 2 series, técnica y calma a 1 vuelta.            */
 const RUTINAS = {
   completa:{
-    nombre:'Clase completa', kanji:'道', dur:'≈ 50 min',
+    nombre:'Clase completa', kanji:'道',
     desc:'La sesión de dojo entera: calentar, fortalecer, técnica y calma.',
     bloques:[
       {titulo:'Calentamiento', rep:2, ids:['trote','rodillas','talones','jumping']},
@@ -327,7 +439,7 @@ const RUTINAS = {
     ],
   },
   express:{
-    nombre:'Express', kanji:'速', dur:'≈ 22 min',
+    nombre:'Express', kanji:'速',
     desc:'Poco tiempo: calentamiento, fuerza esencial y estiramiento.',
     bloques:[
       {titulo:'Calentamiento', rep:1, ids:['trote','rodillas','jumping','mov_articular']},
@@ -343,32 +455,68 @@ const RUTINAS = {
   },
 
   /* ============ ENTRENAMIENTO POR DISCIPLINA ============ */
+  /* Karate: tres clases distintas (kihon, kumite, cuerpo fuerte). El NIVEL elegido cambia el
+     ritmo y las repeticiones (app.js) y, aquí, qué bloques entran (niveles) y cuántas series (rep). */
   karate:{
-    arte:true, nombre:'Karate', kanji:'空手', dur:'≈ 60 min',
-    desc:'Clase de dojo completa: carrera, junbi undō, acondicionamiento, kihon, kata y kumite.',
+    arte:true, nombre:'Karate · Kihon', kanji:'空手',
+    desc:'La clase de dojo: carrera, junbi undō, acondicionamiento y kihon completo — posturas, puños, bloqueos y patadas, despacio y a velocidad —, kata y kumite.',
     bloques:[
-      /* 0. Apertura: rei y mokusō, como en el dojo */
       {titulo:'Saludo y mokusō', rep:1, ids:['mokuso_inicial']},
-      /* 1. Carrera inicial (~10 min): entrar en calor como al empezar la clase */
-      {titulo:'Carrera inicial (≈10 min)', rep:2, ids:['trote_largo','rodillas','talones','jumping']},
-      /* 2. Junbi undō: soltar cada articulación — tobillos, rodillas, cadera, cuello, brazos */
+      {titulo:'Carrera inicial', rep:1, ids:['trote_largo','rodillas','talones','jumping']},
       {titulo:'Junbi undō · Movilidad articular', rep:1, ids:['rot_tobillos','rot_rodillas','circulo_cadera','rot_cuello','circulo_brazos','balanceo_pierna']},
-      /* 3. Acondicionamiento: exigir el cuerpo antes de la técnica */
       {titulo:'Acondicionamiento', rep:1, ids:['elevacion_piernas_30','flexiones_30','plancha']},
-      /* 4. Kihon: técnica básica */
-      {titulo:'Kihon · Puños (zuki)', rep:2, ids:['kizami_zuki','gyaku_zuki']},
-      {titulo:'Kihon · Bloqueos (uke)', rep:2, ids:['age_uke','soto_uke']},
-      {titulo:'Kihon · Patadas (geri)', rep:2, ids:['patada_frontal','patada_lateral','mawashi_geri']},
-      {titulo:'Kihon idō (con espacio)', rep:1, ids:['oi_zuki','mikazuki_geri']},
-      /* 5. Kata y kumite: aplicar la técnica */
-      {titulo:'Kata', rep:2, ids:['kata_basico']},
-      {titulo:'Kumite (sparring de sombra)', rep:2, ids:['kumite_sombra']},
-      {titulo:'Postura (dachi)', rep:1, ids:['kiba_dachi','equilibrio_grulla']},
-      {titulo:'Vuelta a la calma', rep:1, ids:['estira_cuadriceps','estira_isquios','estira_hombros','mokuso']},
+      {titulo:'Dachi · Posturas', rep:1, ids:['zenkutsu_dachi','kiba_dachi']},
+      {titulo:'Kihon · Puños (zuki)', rep:1, ids:['choku_zuki:lento','choku_zuki:rapido','kiba_zuki','gyaku_zuki:lento','gyaku_zuki:rapido','kizami_zuki']},
+      {titulo:'Kihon · Puños con kime', rep:1, niveles:['normal','avanzado'], ids:['gyaku_zuki:fuerte','sanbon_zuki']},
+      {titulo:'Kihon · Bloqueos (uke)', rep:1, ids:['age_uke:lento','soto_uke:lento','uchi_uke:lento','gedan_barai:lento']},
+      {titulo:'Kihon · Bloqueos a velocidad', rep:1, niveles:['normal','avanzado'], ids:['escalera_uke','shuto_uke']},
+      {titulo:'Bloqueo y contraataque', rep:{principiante:1, normal:1, avanzado:2}, ids:['age_gyaku','gedan_gyaku']},
+      {titulo:'Kihon · Patadas (geri)', rep:1, ids:['patada_frontal:lento','patada_frontal:rapido','mae_geri_zenkutsu','patada_lateral','mawashi_geri']},
+      {titulo:'Kihon · Patadas encadenadas', rep:1, niveles:['avanzado'], ids:['mae_yoko_mawashi']},
+      {titulo:'Kihon idō (con espacio)', rep:1, ids:['ayumi_ashi','oi_zuki','mae_geri_oi']},
+      {titulo:'Kata', rep:{principiante:1, normal:1, avanzado:2}, ids:['kata_basico']},
+      {titulo:'Kumite (sparring de sombra)', rep:{principiante:1, normal:1, avanzado:2}, ids:['kumite_sombra']},
+      {titulo:'Vuelta a la calma', rep:1, ids:['estira_cuadriceps','estira_abierto','mariposa','estira_hombros','mokuso']},
+    ],
+  },
+  karate_kumite:{
+    arte:true, nombre:'Karate · Kumite', kanji:'組手',
+    desc:'Clase de combate: kizami-zuki a velocidad y a la voz, entradas con desplazamiento, kekomi desde el suelo, uchi-mawashi y combinaciones que se van encadenando.',
+    bloques:[
+      {titulo:'Saludo y mokusō', rep:1, ids:['mokuso_inicial']},
+      {titulo:'Calentamiento', rep:1, ids:['trote_largo','jumping','circulo_cadera','balanceo_pierna','footwork']},
+      {titulo:'Kizami-zuki · escalera', rep:1, ids:['kizami_zuki:lento','kizami_zuki:rapido']},
+      {titulo:'Kizami-zuki · reacción', rep:1, niveles:['normal','avanzado'], ids:['kizami_reaccion']},
+      {titulo:'Entradas (yori-ashi)', rep:1, ids:['kizami_yori:lento','kizami_yori:rapido']},
+      {titulo:'Kekomi · desde el suelo', rep:1, ids:['kekomi_suelo']},
+      {titulo:'Kekomi · de pie', rep:1, ids:['yoko_kekomi:lento','yoko_kekomi:rapido']},
+      {titulo:'Uchi-mawashi-geri', rep:1, ids:['estira_abierto','equilibrio_grulla','uchi_mawashi:lento','uchi_mawashi']},
+      {titulo:'Combinaciones', rep:1, ids:['combo_gyaku_shuto','combo_gyaku_shuto_geri']},
+      {titulo:'Combinaciones largas', rep:1, niveles:['normal','avanzado'], ids:['combo_cinco']},
+      {titulo:'Combinación final', rep:1, niveles:['avanzado'], ids:['combo_final']},
+      {titulo:'Kumite (sparring de sombra)', rep:1, ids:['kumite_sombra']},
+      {titulo:'Vuelta a la calma', rep:1, ids:['estira_isquios','estira_abierto','estira_hombros','mokuso']},
+    ],
+  },
+  karate_cuerpo:{
+    arte:true, nombre:'Karate · Cuerpo fuerte', kanji:'体',
+    desc:'«El secreto de una buena técnica es un cuerpo fuerte»: escaleras de flexiones y saltos con zuki y mae-geri, bloqueos en kiba-dachi y mawashi con cambio de guardia.',
+    bloques:[
+      {titulo:'Saludo y mokusō', rep:1, ids:['mokuso_inicial']},
+      {titulo:'Movilidad', rep:1, ids:['circulo_cadera','rot_cuello','circulo_brazos','balanceo_pierna','rot_rodillas']},
+      {titulo:'Kiba-dachi y zuki', rep:1, ids:['kiba_dachi','kiba_zuki:lento','kiba_zuki:fuerte']},
+      {titulo:'Escalera 1 · flexiones + zuki', rep:1, ids:['escalera_flex_zuki']},
+      {titulo:'Escalera 2 · saltos + mae-geri', rep:1, ids:['escalera_salto_geri']},
+      {titulo:'Bloqueos en kiba-dachi', rep:1, ids:['soto_uchi:lento','soto_uchi:rapido']},
+      {titulo:'Mae-geri desde zenkutsu', rep:1, ids:['mae_geri_zenkutsu:lento','mae_geri_zenkutsu:rapido']},
+      {titulo:'Fuerza', rep:{principiante:1, normal:1, avanzado:2}, ids:['flexiones','flexion_diamante','toques_hombro']},
+      {titulo:'Core', rep:1, ids:['alitas_pollo','elevacion_piernas']},
+      {titulo:'Mawashi-geri con cambio de guardia', rep:1, ids:['mawashi_geri:lento','mawashi_piso']},
+      {titulo:'Vuelta a la calma', rep:1, ids:['estira_cuadriceps','estira_abierto','mokuso']},
     ],
   },
   muaythai:{
-    arte:true, nombre:'Muay Thai', kanji:'ムエタイ', dur:'≈ 45 min',
+    arte:true, nombre:'Muay Thai', kanji:'ムエタイ',
     desc:'Sesión de gimnasio tailandés: carrera, cuerda, sombra, las ocho armas y acondicionamiento.',
     bloques:[
       {titulo:'Carrera y cuerda', rep:1, ids:['trote_largo','cuerda','rodillas','jumping']},
@@ -383,7 +531,7 @@ const RUTINAS = {
     ],
   },
   taekwondo:{
-    arte:true, nombre:'Taekwondo', kanji:'跆拳道', dur:'≈ 37 min',
+    arte:true, nombre:'Taekwondo', kanji:'跆拳道',
     desc:'Carrera, movilidad, patadas de precisión, altura y velocidad, y kyorugi.',
     bloques:[
       {titulo:'Carrera inicial', rep:1, ids:['trote_largo','rodillas','jumping']},
@@ -398,7 +546,7 @@ const RUTINAS = {
     ],
   },
   kenjutsu:{
-    arte:true, nombre:'Kenjutsu', kanji:'剣術', dur:'≈ 25 min',
+    arte:true, nombre:'Kenjutsu', kanji:'剣術',
     desc:'Sable: cortes (suburi), guardia y desplazamientos. Usa un bokken o un palo.',
     bloques:[
       {titulo:'Calentamiento', rep:1, ids:['trote_largo','mov_articular','circulo_cadera']},
@@ -412,17 +560,32 @@ const RUTINAS = {
   },
 };
 
-/* Aplana bloques (con sus series) a una lista plana de ids */
-function aplanarBloques(bloques){
+/* ---------------- NIVELES DENTRO DE UNA RUTINA ----------------
+   · Un bloque puede existir solo en ciertos niveles: niveles:['normal','avanzado'].
+   · Sus series pueden variar por nivel: rep:{principiante:1, normal:2, avanzado:3}.
+   · Un id puede llevar MODO de ejecución, como en el dojo (primero despacio para
+     la forma, luego a velocidad): 'gyaku_zuki:lento' | 'gyaku_zuki:rapido'.
+   El ritmo (tiempo entre técnicas, pausas, tempo del personaje) lo pone NIVELES en app.js. */
+const NIVEL_ORDEN = ['principiante','normal','avanzado'];
+function bloqueActivo(b, nivel){ return !b.niveles || b.niveles.includes(nivel); }
+function repsBloque(b, nivel){
+  if(typeof b.rep==='number') return b.rep;
+  if(b.rep && typeof b.rep==='object') return b.rep[nivel] ?? b.rep.normal ?? 1;
+  return 1;
+}
+function partirId(s){ const i=s.indexOf(':'); return i<0 ? {id:s, modo:null} : {id:s.slice(0,i), modo:s.slice(i+1)}; }
+
+/* Aplana bloques (con sus series) a una lista plana de ids (pueden llevar ':modo') */
+function aplanarBloques(bloques, nivel='normal'){
   const out=[];
-  bloques.forEach(b=>{ for(let r=0;r<b.rep;r++) out.push(...b.ids); });
+  bloques.forEach(b=>{ if(!bloqueActivo(b,nivel)) return; const n=repsBloque(b,nivel); for(let r=0;r<n;r++) out.push(...b.ids); });
   return out;
 }
 
 /* Resuelve la lista de ids de una rutina (predefinida o generada) */
-function idsDeRutina(r){
+function idsDeRutina(r, nivel='normal'){
   if(r.generar) return generarRutinaSorpresa();
-  if(r.bloques) return aplanarBloques(r.bloques);
+  if(r.bloques) return aplanarBloques(r.bloques, nivel);
   return r.ejercicios || [];
 }
 

@@ -18,9 +18,26 @@ fuerza, core, movilidad y respiración. Funciona **sin internet** y guarda todo 
 > 💡 **En el móvil:** ábrela en Chrome/Safari y usa "Añadir a pantalla de inicio" para
 > tenerla como una app. Mantén la pantalla encendida durante la clase.
 
+### Elige tu nivel
+Arriba de las clases hay un selector de **nivel** que vale para todas y se recuerda en tu
+navegador. La clase es la misma; cambia la **dosis**, como hace un sensei con cada alumno:
+
+| | 🌱 Principiante | 🥋 Normal | 🔥 Avanzado |
+|---|---|---|---|
+| Cambio entre técnicas | 15 s (8 s entre lados) | 8 s (5 s) | 5 s (3 s) |
+| Repeticiones | ×0,7 | las de la tarjeta | ×1,25 en el mismo tiempo |
+| Tempo del personaje | despacio (×1,3) | normal | rápido (×0,8) |
+| Pausa de agua | 90 s cada 10–13 min | 2 min cada 15–20 min | 90 s cada 20–30 min |
+| Bloques extra | — | kime, bloqueos a velocidad, combos largos | + patadas encadenadas, 2.ª serie de kumite |
+
+Además, dentro de una clase, muchas técnicas se hacen **primero despacio (forma) y luego a
+velocidad** —y en kime en los niveles altos—, con el personaje moviéndose al mismo tempo:
+es la «escalera» que usan todas las escuelas de karate.
+
 ### Las clases generales
-Entre técnica y técnica solo hay un **cambio de 5 s** (ya ves y oyes la siguiente), y
-una **pausa de agua de 2 min** cada 20–30 min de trabajo, al acabar un bloque.
+Entre técnica y técnica hay un **cambio breve** (lees y oyes la siguiente mientras el personaje
+se suelta y sacude, como en el dojo; la técnica arranca con el «¡ya!») y una **pausa de agua**
+al acabar un bloque; cuánto duran depende del nivel (tabla de arriba).
 
 - **Clase completa (≈50 min):** calentamiento → movilidad → piernas → tren superior →
   core → técnica marcial → vuelta a la calma. Bloques de fuerza en 2 series.
@@ -29,11 +46,23 @@ una **pausa de agua de 2 min** cada 20–30 min de trabajo, al acabar un bloque.
 
 ### Entrenamiento por disciplina
 Cada arte marcial sigue la estructura de una **clase real** de su escuela:
-- **Karate (≈60 min):** como en el dojo — saludo y mokusō de apertura, **carrera inicial
-  (≈10 min)**, **junbi undō** (movilidad articular: tobillos, rodillas, cadera, cuello,
-  brazos), **acondicionamiento** (elevaciones de piernas ×30 sin tocar el suelo,
-  flexiones ×30, plancha), **kihon** (puños, bloqueos, patadas), **kata**, **kumite**
-  (sparring de sombra), posturas y vuelta a la calma con mokusō.
+- **Karate · Kihon (≈55–65 min según nivel):** como en el dojo — saludo y mokusō,
+  **carrera inicial**, **junbi undō** (movilidad articular), **acondicionamiento**
+  (elevaciones de piernas ×30, flexiones ×30, plancha), posturas (zenkutsu y kiba-dachi
+  mantenidos), **kihon completo**: puños (choku, gyaku, kizami, sanbon-zuki), bloqueos
+  (age, soto, uchi, gedan-barai, shuto-uke en kokutsu), **bloqueo + contraataque**,
+  patadas (mae-geri por tiempos y a velocidad, desde zenkutsu, yoko, mawashi), **kihon idō**
+  con desplazamiento (ayumi-ashi, oi-zuki, mae-geri + oi-zuki), **kata**, **kumite** y
+  estiramiento de suelo con mokusō.
+- **Karate · Kumite (≈35–40 min):** clase de combate al estilo de las clases online de
+  Karate Dojo waKu: kizami-zuki en escalera y **a la voz** (el sensei marca «¡ya!» a ritmo
+  irregular), entradas con yori-ashi, **kekomi desde el suelo** y de pie, uchi-mawashi-geri y
+  combinaciones que se van encadenando (gyaku-zuki + shuto-uke + mae-geri, la de cinco, la
+  final con doble patada en avanzado).
+- **Karate · Cuerpo fuerte (≈30 min):** «el secreto de una buena técnica es un cuerpo
+  fuerte»: **escaleras** de flexiones + 10 zuki (10→5) y sentadillas con salto + 10 mae-geri
+  (10→6), soto/uchi-uke en kiba-dachi, mae-geri desde zenkutsu, fuerza, core («alitas de
+  pollo») y mawashi-geri con cambio de guardia.
 - **Muay Thai (≈45 min):** sesión de gimnasio tailandés — carrera y cuerda, sombra,
   las ocho armas (puños, codos, rodillas, patadas), rounds de sparring de sombra y
   acondicionamiento final.
@@ -42,7 +71,7 @@ Cada arte marcial sigue la estructura de una **clase real** de su escuela:
 - **Kenjutsu (≈25 min):** cortes (suburi men, kesa giri, dō giri), guardia y desplazamientos.
   Usa un bokken o un palo.
 
-Hay **86 ejercicios** con **40 figuras animadas distintas** (cada movimiento tiene la suya: cada
+Hay **118 ejercicios** con **más de 40 figuras animadas distintas** (cada movimiento tiene la suya: cada
 estiramiento tiene la propia, los ejercicios de suelo apoyan de verdad en el tatami y el kenjutsu
 se practica con un bokken en la mano),
 incluidas técnicas que **recorren espacio** (marcadas «↔️ necesita espacio», ~2 m libres).
@@ -196,13 +225,19 @@ La voz del sensei avisa de tener ~2 m libres.
   guardia (`G_KARATE`, `G_MUAY`, `G_TKD`, `G_KEN`) y regístrala en `ANIM_ARQ` (o en
   `ANIM_ARTE` con clave `'arquetipo@arte'` si es una variante de estilo).
 - **Crear/editar una rutina:** edita `RUTINAS` en `js/ejercicios.js`. Cada rutina son
-  **bloques** con `rep` (nº de series) y la lista de `ids` de ejercicios.
+  **bloques** con `rep` (nº de series) y la lista de `ids` de ejercicios. Un id puede llevar
+  **modo**: `'gyaku_zuki:lento'` (forma, despacio), `'gyaku_zuki:rapido'` (velocidad) o
+  `'gyaku_zuki:fuerte'` (kime); cambia repeticiones, duración, tempo del personaje y la
+  consigna del sensei (`MODOS` en `js/app.js`). Un bloque puede limitarse a ciertos niveles
+  (`niveles:['normal','avanzado']`) y tener series distintas por nivel
+  (`rep:{principiante:1, normal:1, avanzado:2}`). La duración de la tarjeta se calcula sola.
 - **Opiniones de los alumnos:** al terminar una clase aparece un formulario (estrellas,
   intensidad y comentario). Se guarda en `localStorage` (`dojo_opiniones`) y al enviarlo
   abre un issue de GitHub ya rellenado en el repositorio (`REPO_OPINION` en `js/app.js`).
-- **Cambiar descansos:** constante `RITMO` en `js/app.js`: segundos de cambio entre
-  técnicas (5 s), cambio de lado (3 s) y el descanso largo (2 min), que llega al terminar
-  un bloque tras 20 min de trabajo (o a los 30 min aunque el bloque siga).
+- **Cambiar el ritmo de cada nivel:** `NIVELES` en `js/app.js`: por nivel, segundos de
+  cambio entre técnicas y entre lados, duración del descanso de agua y cada cuántos minutos
+  de trabajo llega (al terminar un bloque, o forzado si el bloque es muy largo), y los
+  factores de repeticiones, duración y tempo del personaje.
 
 ## Referencias: en qué se basan las clases
 
@@ -210,7 +245,21 @@ La estructura de cada clase sigue la de las escuelas reales:
 
 **Karate** — orden tradicional documentado: seiretsu/rei (formar y saludar) → mokusō →
 carrera → junbi undō (movilidad articular) → acondicionamiento → kihon → kata → kumite →
-mokusō final.
+mokusō final. El contenido de las tres clases de karate y su ritmo (series de 8–10, escalera
+despacio → velocidad → kime, patadas por tiempos, bloqueo + contraataque, pausas de agua,
+escaleras de acondicionamiento) se tomó de transcripciones de clases reales de karate en
+casa grabadas durante la pandemia:
+- [1 Hour Karate Workout Video — Karate Dojo waKu (Yusuke Nagano, Tokio)](https://www.youtube.com/watch?v=JLSksuDd7Nc):
+  kizami-zuki en escalera y a la voz, kekomi desde el suelo, uchi-mawashi-geri, combinaciones.
+- [Cómo practicar karate en casa — KarateTeamRamirez](https://www.youtube.com/watch?v=bYUdYGr9Czk),
+  [Fortalece tu cuerpo](https://www.youtube.com/watch?v=UjlbMdruIuk),
+  [Para todos los niveles](https://www.youtube.com/watch?v=_6bCnQ-p_DQ) y
+  [Entrena el cuerpo con karate](https://www.youtube.com/watch?v=vzYVOgatjGo): posturas
+  isométricas, uke + gyaku-zuki, sanbon-zuki, mae-geri desde zenkutsu, escaleras de
+  flexiones/saltos con zuki y mae-geri, «alitas de pollo», mawashi con cambio de guardia.
+- [30 minutos de karate básico](https://www.youtube.com/watch?v=jgb6dtF0xIM) y
+  [30 minutos más](https://www.youtube.com/watch?v=gVB6EziX6tc) — Irimi Madrid: age · chudan ·
+  gedan en escalera, kiba ↔ zenkutsu, shuto-uke, mae → yoko → mawashi, estiramiento de suelo.
 - [Class format — Shotokan Karate of America, Univ. de Pittsburgh](https://pitt.ska.org/class-format/)
 - [Dojo protocol — JKA Hawaii](https://jkahawaii.com/dojo-protocol/) (apertura y cierre: seiza, mokusō, rei)
 - [Estructura de una clase (en español) — Karate Shotokan KI](https://karateshotokanki.jimdofree.com/estructura-de-una-clase/) (60 min en 4 fases de 15)

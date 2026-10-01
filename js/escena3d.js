@@ -393,6 +393,11 @@ const Dojo3D = (function(){
   const ANIM = {
     breathe(j,t){ const s=pulso(t); j.torso.rotation.x=0.04*s; j.cabeza.rotation.x=0.03*s;
       j.hombroL.rotation.z=0.12+0.03*s; j.hombroR.rotation.z=-0.12-0.03*s; j.root.position.y=0.01*s; },
+    soltar(j,t){ const s=sin(t), u=pulso(t);        // "sacude": de pie, brazos colgando que oscilan y rodillas que rebotan (entre técnicas)
+      j.hombroL.rotation.x=0.22*s; j.hombroR.rotation.x=-0.22*s; j.hombroL.rotation.z=0.14; j.hombroR.rotation.z=-0.14;
+      j.codoL.rotation.x=-0.22-0.12*u; j.codoR.rotation.x=-0.22-0.12*u;
+      j.caderaL.rotation.x=-0.08*u; j.caderaR.rotation.x=-0.08*u; j.rodillaL.rotation.x=0.16*u; j.rodillaR.rotation.x=0.16*u;
+      j.root.position.y=-0.05*u; j.torso.rotation.y=0.05*s; j.cabeza.rotation.x=0.04; },
 
     run(j,t){ const a=sin(t); j.caderaL.rotation.x=0.9*a; j.caderaR.rotation.x=-0.9*a;
       j.rodillaL.rotation.x=0.35+Math.max(0,-a)*1.3; j.rodillaR.rotation.x=0.35+Math.max(0,a)*1.3;
@@ -599,7 +604,7 @@ const Dojo3D = (function(){
   /* Tempo real de cada ciclo (s). Las funciones usan ciclos ENTEROS en t∈[0,1): así el bucle
      empalma sin saltos y la velocidad se regula aquí, no con frecuencias fraccionarias. */
   ANIM.run.dur=0.9; ANIM.highknees.dur=0.9; ANIM.buttkicks.dur=0.9; ANIM.jump.dur=1.3;
-  ANIM.breathe.dur=4.5; ANIM.meditar.dur=5.5; ANIM.cuello.dur=6; ANIM.catcamel.dur=4.5;
+  ANIM.breathe.dur=4.5; ANIM.soltar.dur=1.7; ANIM.meditar.dur=5.5; ANIM.cuello.dur=6; ANIM.catcamel.dur=4.5;
 
   /* ============ Técnica marcial v2 — poses por fotogramas clave ============
      Cada golpe pasa por sus fases reales: guardia → chamber (recoger la
@@ -658,6 +663,15 @@ const Dojo3D = (function(){
     caderaL_x:-0.50, rodillaL_x:0.60, caderaR_x:0.30, rodillaR_x:0.12,
     hombroL_x:-0.95, hombroL_z:0.18, codoL_x:-0.85,   // brazo adelantado
     hombroR_x:0.40,  hombroR_z:-0.16, codoR_x:-1.75,  // hikite: puño en la cadera
+  };
+  const G_KIBA = {                                    // kiba-dachi (jinete) con las dos manos en hikite
+    root_py:-0.30, caderaL_x:-0.15, caderaL_z:0.50, rodillaL_x:1.10, caderaR_x:-0.15, caderaR_z:-0.50, rodillaR_x:1.10,
+    hombroL_x:0.40, hombroL_z:0.16, codoL_x:-1.75, hombroR_x:0.40, hombroR_z:-0.16, codoR_x:-1.75,
+  };
+  const G_KOKUTSU = {                                 // kokutsu-dachi: peso atrás, pierna trasera flexionada, delantera casi recta
+    root_py:-0.20, torso_y:0.35, cabeza_y:-0.30,
+    caderaL_x:-0.55, rodillaL_x:0.25, caderaR_x:-0.35, caderaR_z:-0.40, rodillaR_x:1.00,
+    hombroL_x:-0.95, hombroL_z:0.18, codoL_x:-0.85, hombroR_x:0.40, hombroR_z:-0.16, codoR_x:-1.75,
   };
   const G_MUAY = {                                    // guardia alta, mentón abajo
     root_py:-0.05, torso_y:0.10, cabeza_x:0.12,
@@ -803,6 +817,41 @@ const Dojo3D = (function(){
     /* ---- Técnicas que RECORREN espacio (avanzan, saltan o barren) ----
        Usan root_pz (avanzar hacia el frente) y root_py (saltar). El ciclo
        siempre vuelve a la guardia, imitando "golpeo y recupero postura". */
+    blocklow: {dur:2.4, pasos:[                                          // gedan-barai: carga en la oreja contraria y barre abajo
+      {t:0,    p:{...G_KARATE}},
+      {t:0.25, p:{...G_KARATE, hombroR_x:-1.55, hombroR_z:0.55, codoR_x:-2.40, torso_y:0.45}},     // puño junto a la oreja izquierda
+      {t:0.48, p:{...G_KARATE, hombroR_x:-0.55, hombroR_z:-0.20, codoR_x:-0.35, torso_y:0.05,
+                  hombroL_x:0.40, hombroL_z:0.16, codoL_x:-1.75}},       // barrido: brazo casi recto sobre la rodilla adelantada
+      {t:0.70, p:{...G_KARATE, hombroR_x:-0.55, hombroR_z:-0.20, codoR_x:-0.35, torso_y:0.05,
+                  hombroL_x:0.40, hombroL_z:0.16, codoL_x:-1.75}},       // mantiene
+      {t:0.92, p:{...G_KARATE}},
+    ]},
+    blockin: {dur:2.4, pasos:[                                           // uchi-uke: carga bajo la axila contraria y barre hacia fuera
+      {t:0,    p:{...G_KARATE}},
+      {t:0.25, p:{...G_KARATE, hombroR_x:-0.85, hombroR_z:0.60, codoR_x:-2.50, torso_y:0.10}},     // puño bajo la axila izquierda
+      {t:0.48, p:{...G_KARATE, hombroR_x:-0.75, hombroR_z:-0.55, codoR_x:-1.65, torso_y:0.50,
+                  hombroL_x:0.40, hombroL_z:0.16, codoL_x:-1.75}},       // antebrazo vertical frente al hombro, tronco en hanmi
+      {t:0.70, p:{...G_KARATE, hombroR_x:-0.75, hombroR_z:-0.55, codoR_x:-1.65, torso_y:0.50,
+                  hombroL_x:0.40, hombroL_z:0.16, codoL_x:-1.75}},
+      {t:0.92, p:{...G_KARATE}},
+    ]},
+    shuto: {dur:2.6, pasos:[                                             // shuto-uke en kokutsu-dachi: peso atrás, mano de sable
+      {t:0,    p:{...G_KOKUTSU, hombroL_x:-1.30, hombroL_z:0.10, codoL_x:-0.25}},                 // mano izquierda extendida al frente
+      {t:0.25, p:{...G_KOKUTSU, hombroR_x:-1.60, hombroR_z:0.50, codoR_x:-2.40,
+                  hombroL_x:-1.30, hombroL_z:0.10, codoL_x:-0.25, torso_y:0.20}},                 // carga: mano derecha en la oreja izquierda
+      {t:0.50, p:{...G_KOKUTSU, hombroR_x:-0.95, hombroR_z:-0.35, codoR_x:-1.35,
+                  hombroL_x:-0.45, hombroL_z:0.35, codoL_x:-2.10, torso_y:0.55}},                 // corte hacia fuera; la izquierda al plexo
+      {t:0.74, p:{...G_KOKUTSU, hombroR_x:-0.95, hombroR_z:-0.35, codoR_x:-1.35,
+                  hombroL_x:-0.45, hombroL_z:0.35, codoL_x:-2.10, torso_y:0.55}},
+      {t:0.94, p:{...G_KOKUTSU, hombroL_x:-1.30, hombroL_z:0.10, codoL_x:-0.25}},
+    ]},
+    punchhorse: {dur:2.2, pasos:[                                        // choku-zuki alterno en kiba-dachi (piernas quietas)
+      {t:0,    p:{...G_KIBA}},
+      {t:0.20, p:{...G_KIBA, hombroR_x:-1.45, hombroR_z:-0.05, codoR_x:-0.10}},  // puño derecho
+      {t:0.48, p:{...G_KIBA}},
+      {t:0.68, p:{...G_KIBA, hombroL_x:-1.45, hombroL_z:0.05, codoL_x:-0.10}},   // puño izquierdo
+      {t:0.92, p:{...G_KIBA}},
+    ]},
     lungepunch: {dur:2.4, pasos:[                                        // oi-zuki: entra en zenkutsu y golpea
       {t:0,    p:{...G_KARATE}},
       {t:0.34, p:{...G_KARATE, root_pz:0.26, caderaL_x:-0.80, rodillaL_x:1.00, caderaR_x:0.55, rodillaR_x:0.10,
@@ -850,7 +899,8 @@ const Dojo3D = (function(){
     kick:'Patada frontal · mae geri', roundhouse:'Patada circular · mawashi geri',
     sidekick:'Patada lateral · yoko geri', backkick:'Patada atrás · dwit chagi',
     axekick:'Patada de hacha · naeryo chagi', kneestrike:'Rodillazo (muay thai)',
-    punch:'Puños · zuki (alternos)', hook:'Ganchos (hooks)', block:'Bloqueo · age-uke',
+    punch:'Puños · zuki (alternos)', punchhorse:'Puños en kiba-dachi', hook:'Ganchos (hooks)', block:'Bloqueo · age-uke',
+    blocklow:'Bloqueo bajo · gedan-barai', blockin:'Bloqueo interior · uchi-uke', shuto:'Shuto-uke en kokutsu-dachi',
     elbow:'Codazo · sok', sword:'Corte de sable · men',
     'patada@muaythai':'Teep (patada de empuje)', 'patada@taekwondo':'Patadas rápidas (TKD)',
     'roundhouse@muaythai':'Low kick', 'roundhouse@taekwondo':'Dollyo chagi',
@@ -888,10 +938,13 @@ const Dojo3D = (function(){
     kick: animadorMov('kick'), roundhouse: animadorMov('roundhouse'),
     sidekick: animadorMov('sidekick'), backkick: animadorMov('backkick'),
     axekick: animadorMov('axekick'), kneestrike: animadorMov('kneestrike'),
-    punch: animadorMov('punch'), hook: animadorMov('hook'),
-    block: animadorMov('block'), elbow: animadorMov('elbow'), sword: animadorMov('sword'),
+    punch: animadorMov('punch'), punchhorse: animadorMov('punchhorse'), hook: animadorMov('hook'),
+    block: animadorMov('block'), blocklow: animadorMov('blocklow'), blockin: animadorMov('blockin'), shuto: animadorMov('shuto'),
+    elbow: animadorMov('elbow'), sword: animadorMov('sword'),
     lungepunch: animadorMov('lungepunch'), jumpkick: animadorMov('jumpkick'),
     flyingknee: animadorMov('flyingknee'), crescent: animadorMov('crescent'),
+    guardia(j,t){ mezclarPose(j, G_KARATE, G_KARATE, 0); const s=pulso(t); // zenkutsu-dachi mantenido: respira, no se mueve
+      j.root.position.y += 0.008*s; j.torso.rotation.x += 0.015*s; },
     kamae(j,t){ mezclarPose(j, G_KEN, G_KEN, 0); const s=pulso(t);       // guardia viva: respira y flota
       j.root.position.y += 0.012*s; j.torso.rotation.x += 0.02*s; j.root.position.z = 0.12*sin(t); },
     balance(j,t){ mezclarPose(j, POSE_GRULLA, POSE_GRULLA, 0);            // grulla: rodilla alta, brazos en cruz
@@ -1010,10 +1063,11 @@ const Dojo3D = (function(){
     roundhouse:ANIM.roundhouse, rodillazo:ANIM.kneestrike,
     avance_puno:ANIM.lungepunch, patada_salto:ANIM.jumpkick, rodillazo_salto:ANIM.flyingknee, creciente:ANIM.crescent,
     zancada_andando:ANIM.walklunge, desplazamiento:ANIM.sidestep,
-    puno:ANIM.punch, gancho:ANIM.hook, bloqueo:ANIM.block, codo:ANIM.elbow,
+    puno:ANIM.punch, puno_kiba:ANIM.punchhorse, guardia_karate:ANIM.guardia, gancho:ANIM.hook, codo:ANIM.elbow,
+    bloqueo:ANIM.block, bloqueo_bajo:ANIM.blocklow, bloqueo_interior:ANIM.blockin, shuto:ANIM.shuto,
     espada:ANIM.sword, kamae:ANIM.kamae, equilibrio:ANIM.balance, grulla:ANIM.balance,
     estiramiento:ANIM.stretch, cuello:ANIM.cuello, cuadriceps:ANIM.cuadriceps, isquios:ANIM.isquios, hombros:ANIM.hombros,
-    respiracion:ANIM.breathe, meditacion:ANIM.meditar,
+    respiracion:ANIM.breathe, meditacion:ANIM.meditar, soltar:ANIM.soltar,
   };
 
   function resolverAnim(arquetipo, arte){
@@ -1357,7 +1411,7 @@ const Dojo3D = (function(){
     const ahora=performance.now(); const dt=Math.min(0.1,(ahora-(ultimoCuadro||ahora))/1000); ultimoCuadro=ahora; reloj+=dt;
     const j = rig.userData.j;
     rig.reset();
-    const dur = (animador && animador.dur) || 2.0;    // duración de un ciclo (s)
+    const dur = ((animador && animador.dur) || 2.0) * tempo;   // duración de un ciclo (s), según el tempo de la clase
     const t = congelaT!=null ? (congelaT%1) : ((ahora-t0)/1000/dur)%1;
     (animador||ANIM.breathe)(j, t);
     if(fundido) aplicarFundido(j, ahora);             // enlaza suave con la pose del ejercicio anterior
@@ -1370,6 +1424,18 @@ const Dojo3D = (function(){
     renderer.render(scene, camera);
   }
   function detener(){ if(raf){ cancelAnimationFrame(raf); raf=null; } ultimoCuadro=0; }
+
+  /* Tempo del personaje: >1 más lento (principiante, 'despacio'), <1 más rápido (avanzado,
+     'velocidad'). Se cambia conservando la fase para que el movimiento no salte. */
+  let tempo = 1;
+  function setTempo(f){
+    f = (f>0) ? f : 1;
+    if(f===tempo) return;
+    const ahora = performance.now(), base = (animador && animador.dur) || 2.0;
+    const fase = ((ahora-t0)/1000/(base*tempo))%1;
+    tempo = f;
+    t0 = ahora - fase*base*tempo*1000;
+  }
 
   /* Fundido entre ejercicios: al cambiar de animación se guarda la pose que se ve
      en ese momento y, durante FUNDIDO_S, se interpola (slerp) hacia la nueva.
@@ -1494,7 +1560,7 @@ const Dojo3D = (function(){
      personaje "karateka" (silueta clara para analizar el movimiento). */
   function montarEn(cont, arquetipo, arte, personaje){
     init(cont);                                   // crea el lienzo o lo re-monta aquí
-    modoCam='libre'; modoLibre=true; congelaT=null; az=0.5; el=0.12;
+    modoCam='libre'; modoLibre=true; congelaT=null; az=0.5; el=0.12; tempo=1;
     setFondo('zen');                              // fondo claro y neutro para analizar
     setPersonaje(personaje||'karateka');
     setEjercicio(arquetipo, arte);
@@ -1503,7 +1569,7 @@ const Dojo3D = (function(){
   /* ---- Ambiente de portada: el dojo vivo, con el personaje meditando ---- */
   function montarAmbiente(cont, fondo, personaje){
     init(cont);
-    modoCam='ambiente'; modoLibre=false; congelaT=null;
+    modoCam='ambiente'; modoLibre=false; congelaT=null; tempo=1;
     if(fondo) setFondo(fondo);
     if(personaje) setPersonaje(personaje);
     setEjercicio('meditacion');
@@ -1523,7 +1589,7 @@ const Dojo3D = (function(){
     if(camera) colocarCamara();
   }
 
-  return {init, setEjercicio, setFondo, setPersonaje, cicloFondo, cicloPersonaje,
+  return {init, setEjercicio, setTempo, setFondo, setPersonaje, cicloFondo, cicloPersonaje,
           detener, arrancar, resize, personajes, fondos,
           montarEn, montarAmbiente, desmontar, vistaClase, congelar, orbita, renderAhora:()=>{ if(listo) cuadro(); },
           editable: claveEditable, editarInfo, valorPose, setValorPose,

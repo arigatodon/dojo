@@ -426,11 +426,11 @@ const MAPA_FIGURA = {
   roundhouse:'roundhouse', rodillazo:'kneestrike',
   avance_puno:'punch', creciente:'kick', patada_salto:'kick', rodillazo_salto:'kneestrike',
   zancada_andando:'squat', desplazamiento:'skater',
-  puno:'punch', gancho:'punch', bloqueo:'block', codo:'elbow',
+  puno:'punch', puno_kiba:'punch', guardia_karate:'punch', gancho:'punch', bloqueo:'block', bloqueo_bajo:'block', bloqueo_interior:'block', shuto:'block', codo:'elbow',
   espada:'sword', kamae:'kamae',
   equilibrio:'balance', grulla:'balance',
   /* calma */
-  estiramiento:'stretch', movilidad:'stretch', respiracion:'breathe', meditacion:'breathe',
+  estiramiento:'stretch', movilidad:'stretch', respiracion:'breathe', meditacion:'breathe', soltar:'breathe',
 };
 
 /* Devuelve el <svg> completo para un arquetipo dado */

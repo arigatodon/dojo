@@ -151,6 +151,18 @@ body.en-clase .barra{display:none}
 .stat b{display:block;font-size:1.9rem;color:var(--kin);font-family:var(--display);line-height:1;font-variant-numeric:tabular-nums}
 .stat span{display:block;margin-top:.3rem;font-size:.66rem;color:var(--humo);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
 
+/* ---------- Nivel de la clase ---------- */
+.selector-nivel{grid-column:2;margin-top:.9rem}
+.niveles{display:inline-flex;flex-wrap:wrap;gap:.3rem;padding:.3rem;border:1px solid var(--linea2);border-radius:999px;background:var(--laca)}
+.nivel{display:inline-flex;align-items:center;gap:.5rem;border:0;background:transparent;color:var(--humo);padding:.5rem 1rem;border-radius:999px;cursor:pointer;font-weight:500;font-size:.92rem;line-height:1;transition:background .2s,color .2s}
+.nivel .nivel-kanji{font-family:var(--display);font-size:1.05rem;opacity:.7}
+.nivel:hover{color:var(--washi)}
+.nivel.on{background:linear-gradient(180deg,var(--urushi2),var(--urushi));color:#fff;box-shadow:0 8px 20px -10px rgba(200,49,30,.8)}
+.nivel.on .nivel-kanji{opacity:1}
+.nivel-desc{color:var(--humo);font-size:.9rem;line-height:1.5;margin-top:.6rem;max-width:62ch}
+.nivel-desc b{color:var(--tinta)}
+@media(max-width:620px){.selector-nivel{grid-column:1/-1}}
+
 /* ---------- Secciones de inicio ---------- */
 .seccion{padding-top:3.4rem}
 .seccion-cab{display:grid;grid-template-columns:auto 1fr;gap:.2rem 1.1rem;align-items:baseline;margin-bottom:1.3rem}
@@ -163,7 +175,7 @@ body.en-clase .barra{display:none}
 
 .tarjetas{display:grid;grid-template-columns:1fr;gap:1rem}
 @media(min-width:620px){.tarjetas{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:960px){.tarjetas{grid-template-columns:repeat(3,1fr)}.tarjetas-artes{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:960px){.tarjetas{grid-template-columns:repeat(3,1fr)}.tarjetas-artes{grid-template-columns:repeat(3,1fr)}}
 .tarjeta{
   position:relative;text-align:left;cursor:pointer;overflow:hidden;
   background:linear-gradient(160deg,#1a1411 0%,var(--laca) 60%,#120e0c 100%);

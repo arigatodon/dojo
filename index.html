@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dōjō — Rutinas de artes marciales con sensei virtual</title>
-<meta name="description" content="Dōjō: 86 ejercicios de artes marciales con figuras animadas, personaje 3D, voz de sensei y timer. Entrena gratis en el navegador, sin conexión y sin cuenta.">
+<meta name="description" content="Dōjō: 118 ejercicios de artes marciales en tres niveles (principiante, normal, avanzado), con personaje 3D, voz de sensei y timer. Clases de karate basadas en clases reales de dojo. Gratis, sin conexión y sin cuenta.">
 <link rel="canonical" href="https://arigatodon.github.io/dojo/">
 <meta name="author" content="Igor Venegas">
 <meta name="theme-color" content="#0b0908">
@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="Dōjō">
 <meta property="og:locale" content="es_CL">
 <meta property="og:title" content="Dōjō — Rutinas de artes marciales con sensei virtual">
-<meta property="og:description" content="Dōjō: 86 ejercicios de artes marciales con figuras animadas, personaje 3D, voz de sensei y timer. Entrena gratis en el navegador, sin conexión y sin cuenta.">
+<meta property="og:description" content="Dōjō: 118 ejercicios de artes marciales en tres niveles (principiante, normal, avanzado), con personaje 3D, voz de sensei y timer. Clases de karate basadas en clases reales de dojo. Gratis, sin conexión y sin cuenta.">
 <meta property="og:url" content="https://arigatodon.github.io/dojo/">
 <meta property="og:image" content="https://arigatodon.github.io/dojo/og-image.jpg">
 <meta property="og:image:type" content="image/jpeg">
@@ -23,7 +23,7 @@
 <meta property="og:image:alt" content="Dōjō: dojo virtual en 3D con el personaje del alumno y el botón para empezar la clase">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Dōjō — Rutinas de artes marciales con sensei virtual">
-<meta name="twitter:description" content="Dōjō: 86 ejercicios de artes marciales con figuras animadas, personaje 3D, voz de sensei y timer. Entrena gratis en el navegador, sin conexión y sin cuenta.">
+<meta name="twitter:description" content="Dōjō: 118 ejercicios de artes marciales en tres niveles (principiante, normal, avanzado), con personaje 3D, voz de sensei y timer. Clases de karate basadas en clases reales de dojo. Gratis, sin conexión y sin cuenta.">
 <meta name="twitter:image" content="https://arigatodon.github.io/dojo/og-image.jpg">
 <meta name="twitter:image:alt" content="Dōjō: dojo virtual en 3D con el personaje del alumno y el botón para empezar la clase">
 <script type="application/ld+json">
@@ -32,7 +32,7 @@
   "@type": "WebApplication",
   "name": "Dōjō",
   "url": "https://arigatodon.github.io/dojo/",
-  "description": "Dōjō: 86 ejercicios de artes marciales con figuras animadas, personaje 3D, voz de sensei y timer. Entrena gratis en el navegador, sin conexión y sin cuenta.",
+  "description": "Dōjō: 118 ejercicios de artes marciales en tres niveles (principiante, normal, avanzado), con personaje 3D, voz de sensei y timer. Clases de karate basadas en clases reales de dojo. Gratis, sin conexión y sin cuenta.",
   "image": "https://arigatodon.github.io/dojo/og-image.jpg",
   "inLanguage": "es-CL",
   "applicationCategory": "SportsApplication",
@@ -59,7 +59,7 @@
   "license": "https://www.gnu.org/licenses/gpl-3.0.html"
 }
 </script>
-<link rel="stylesheet" href="css/estilos.css?v=7">
+<link rel="stylesheet" href="css/estilos.css?v=9">
 </head>
 <body>
 
@@ -110,6 +110,7 @@
         <span class="seccion-kanji" aria-hidden="true">稽古</span>
         <h2 class="titulo-seccion">Elige tu clase</h2>
         <p>Clases completas y guiadas: calentamiento, fuerza, técnica y vuelta a la calma. Tú marcas el ritmo con pausar y saltar.</p>
+        <div class="selector-nivel" id="selector-nivel"><!-- nivel de la clase, generado por JS --></div>
       </header>
       <div class="tarjetas" id="tarjetas-rutinas"><!-- generado por JS --></div>
     </section>
@@ -283,11 +284,11 @@
 
 <script src="vendor/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
-<script src="assets/modelos.js?v=7"></script>
-<script src="assets/personajes-extra.js?v=7"></script>
-<script src="js/figuras.js?v=7"></script>
-<script src="js/ejercicios.js?v=7"></script>
-<script src="js/escena3d.js?v=7"></script>
-<script src="js/app.js?v=7"></script>
+<script src="assets/modelos.js?v=9"></script>
+<script src="assets/personajes-extra.js?v=9"></script>
+<script src="js/figuras.js?v=9"></script>
+<script src="js/ejercicios.js?v=9"></script>
+<script src="js/escena3d.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
 </body>
 </html>

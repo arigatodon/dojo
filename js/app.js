@@ -29,18 +29,19 @@ function montarPortada(){
 /* ============================================================
    INICIO — tarjetas de rutina y estadísticas
    ============================================================ */
-const COLOR_ARTE = {karate:'#e64d36', muaythai:'#d9b25f', taekwondo:'#6f8fd0', kenjutsu:'#8fae6b'};
+const COLOR_ARTE = {karate:'#e64d36', karate_kumite:'#f0713f', karate_cuerpo:'#c9402b', muaythai:'#d9b25f', taekwondo:'#6f8fd0', kenjutsu:'#8fae6b'};
 function renderInicio(){
   // tarjetas (clases generales y disciplinas marciales por separado)
   const tarjeta = (k,r)=>`
     <button class="tarjeta${r.arte?' tarjeta-arte':''}" onclick="iniciarClase('${k}')" style="--color-arte:${COLOR_ARTE[k]||'var(--kin)'}">
       ${r.arte?'<span class="obi" aria-hidden="true"></span>':''}
       <span class="kanji" aria-hidden="true">${r.kanji}</span>
-      <span class="dur">${r.dur}</span>
+      <span class="dur">${duracionRutina(r)}</span>
       <h3>${r.nombre}</h3>
       <p>${r.desc}</p>
       <span class="tarjeta-meta"><span>${resumenRutina(r)}</span><span class="tarjeta-fig" aria-hidden="true">${figuraSVG(FIGURA_TARJETA[k]||'respiracion')}</span></span>
     </button>`;
+  renderNivel();
   const entradas = Object.entries(RUTINAS);
   document.getElementById('tarjetas-rutinas').innerHTML =
     entradas.filter(([,r])=>!r.arte).map(([k,r])=>tarjeta(k,r)).join('');
@@ -55,14 +56,38 @@ function renderInicio(){
   document.getElementById('stat-racha').textContent = calcularRacha(ses);
 }
 
+/* Selector de nivel (se recuerda en el navegador y vale para todas las clases) */
+function renderNivel(){
+  const cont = document.getElementById('selector-nivel'); if(!cont) return;
+  const N = NIVELES[nivelActual];
+  cont.innerHTML = `
+    <div class="niveles" role="radiogroup" aria-label="Nivel de la clase">
+      ${Object.entries(NIVELES).map(([k,n])=>`
+        <button type="button" role="radio" aria-checked="${k===nivelActual}" class="nivel${k===nivelActual?' on':''}" onclick="cambiarNivel('${k}')">
+          <span class="nivel-kanji" aria-hidden="true">${n.kanji}</span><b>${n.nombre}</b></button>`).join('')}
+    </div>
+    <p class="nivel-desc"><b>${N.icono} ${N.nombre}.</b> ${N.desc}</p>`;
+}
+function cambiarNivel(k){
+  if(!NIVELES[k] || k===nivelActual) return;
+  nivelActual = k; localStorage.setItem('dojo_nivel', k);
+  renderInicio();
+}
+
 /* Figura que ilustra cada clase en su tarjeta, y resumen (técnicas y pausas de agua) */
 const FIGURA_TARJETA = {completa:'patada', express:'jumping', sorprende:'burpee',
-  karate:'puno', muaythai:'rodillazo', taekwondo:'roundhouse', kenjutsu:'espada'};
+  karate:'puno', karate_kumite:'patada_lateral', karate_cuerpo:'flexion', muaythai:'rodillazo', taekwondo:'roundhouse', kenjutsu:'espada'};
 function resumenRutina(r){
   if(r.generar) return 'Al azar · 1 pausa';
   const pasos = construirTimeline(itemsDeRutina(r));
   const n = pasos.filter(p=>p.tipo==='ejercicio').length, d = pasos.filter(p=>p.tipo==='descanso').length;
   return `${n} técnicas · ` + (d ? `${d} pausa${d>1?'s':''}` : 'sin pausa');
+}
+/* Duración real de la clase en el nivel elegido (se calcula de la línea de tiempo) */
+function duracionRutina(r){
+  if(r.generar) return r.dur || '';
+  const seg = construirTimeline(itemsDeRutina(r)).reduce((a,p)=>a+p.dur,0);
+  return `≈ ${Math.round(seg/60)} min`;
 }
 
 function calcularRacha(ses){
@@ -130,10 +155,16 @@ const eligeFrase = arr => arr[Math.floor(Math.random()*arr.length)];
 /* Programa los avisos de voz que se irán diciendo mientras corre el tiempo */
 function construirCues(p){
   const cues = [];
+  if(p.tipo==='ejercicio' && p.ej.reaccion){        // reacción: golpea solo a la voz, a ritmo irregular
+    cues.push({at:3, txt:'En guardia, relajado. Golpea solo cuando oigas: ¡ya!'});
+    for(let t=8; t<p.dur-3; t+=1.5+Math.random()*3.5) cues.push({at:t, txt:'¡Ya!'});
+    return cues;
+  }
   if(p.tipo==='ejercicio'){
     const ej=p.ej, dur=p.dur;
     let base = [];
-    base.push(ej.tipo==='reps' ? `${ej.reps} repeticiones${ej.pesas?', con pesas':''}` : 'Mantén el ritmo');
+    base.push(ej.tipo==='reps' ? `${p.reps||ej.reps} repeticiones${ej.pesas?', con pesas':''}` : 'Mantén el ritmo');
+    if(p.modo && MODOS[p.modo]) base.push(MODOS[p.modo].cue);      // despacio / velocidad / kime
     if(ej.espacio) base.push('Asegúrate de tener unos dos metros libres al frente');
     ej.instrucciones.forEach(t=>base.push(t));      // los detalles, leídos uno a uno
     base.push(eligeFrase(FRASES.animo));
@@ -165,53 +196,98 @@ if(typeof Dojo3D!=='undefined'){                    // claves de versiones anter
 let hudMinimo = localStorage.getItem('dojo_hud')==='min';
 
 /* Pinta la figura del paso actual: 3D si hay WebGL, si no SVG de respaldo */
-function pintarFigura(arquetipo, arte){
+function pintarFigura(arquetipo, arte, tempo){
   const fig = document.getElementById('figura');
-  if(usar3D){ fig.classList.remove('svg2d'); Dojo3D.setEjercicio(arquetipo, arte); }
+  if(usar3D){ fig.classList.remove('svg2d'); Dojo3D.setTempo(tempo||1); Dojo3D.setEjercicio(arquetipo, arte); }
   else { fig.classList.add('svg2d'); fig.innerHTML = figuraSVG(arquetipo); }
 }
 
 /* Lista de {id, bloque} de una rutina: el bloque es el título de la parte de la clase
    (Kihon, Kata, Core · serie 2/2…) y se muestra en el HUD para saber dónde estás */
-function itemsDeRutina(r){
+function itemsDeRutina(r, nivel){
+  nivel = nivel || nivelActual;
+  const item = (s, bloque) => { const {id,modo} = partirId(s); return {id, modo, bloque}; };
   if(r.bloques && !r.generar){
     const out=[];
-    r.bloques.forEach(b=>{ for(let k=0;k<b.rep;k++) b.ids.forEach(id=>out.push({id, bloque:(b.titulo||'')+(b.rep>1?` · serie ${k+1}/${b.rep}`:'')})); });
+    r.bloques.forEach(b=>{
+      if(!bloqueActivo(b, nivel)) return;
+      const n = repsBloque(b, nivel);
+      for(let k=0;k<n;k++) b.ids.forEach(s=>out.push(item(s, (b.titulo||'')+(n>1?` · serie ${k+1}/${n}`:''))));
+    });
     return out;
   }
-  return idsDeRutina(r).map(id=>({id, bloque:(POR_ID[id] && CATEGORIAS[POR_ID[id].categoria]) ? CATEGORIAS[POR_ID[id].categoria].nombre : ''}));
+  return idsDeRutina(r, nivel).map(s=>{ const ej=POR_ID[partirId(s).id];
+    return item(s, (ej && CATEGORIAS[ej.categoria]) ? CATEGORIAS[ej.categoria].nombre : ''); });
 }
 
-/* Ritmo de la clase: entre técnica y técnica solo hay un CAMBIO breve (colocarse y
-   ver la siguiente), y el DESCANSO de verdad llega cada 20–30 min de trabajo, al
-   terminar un bloque (como la pausa para beber agua de una clase real).          */
-const RITMO = {
-  cambio:5,            // s entre ejercicios
-  cambioLado:3,        // s para cambiar de lado en ejercicios unilaterales
-  descanso:120,        // s del descanso largo
-  descansoDesde:20*60, // trabajo acumulado a partir del cual se descansa al acabar el bloque
-  descansoMax:30*60,   // si el bloque es muy largo, se descansa igual al llegar aquí
-  sinDescansoFinal:5*60, // no descansar si queda menos que esto de clase
+/* ---------------- Niveles ----------------
+   El nivel marca el RITMO de la clase, como en el dojo: al principiante se le da tiempo
+   entre técnicas y agua a menudo; al avanzado se le exige encadenar. También escala las
+   repeticiones (misma clase, distinta dosis) y el tempo al que se mueve el personaje.  */
+const NIVELES = {
+  principiante:{nombre:'Principiante', kanji:'初', icono:'🌱',
+    desc:'Ritmo pausado: 15 s para colocarte entre técnicas, menos repeticiones, el sensei se mueve despacio y hay agua cada 10–13 min.',
+    ritmo:{prep:15, cambio:15, cambioLado:8, descanso:90, descansoDesde:10*60, descansoMax:13*60, sinDescansoFinal:4*60},
+    reps:0.7, dur:0.85, tempo:1.3},
+  normal:{nombre:'Normal', kanji:'中', icono:'🥋',
+    desc:'La clase tal cual: 8 s entre técnicas, repeticiones completas y pausa de agua cada 15–20 min.',
+    ritmo:{prep:10, cambio:8, cambioLado:5, descanso:120, descansoDesde:15*60, descansoMax:20*60, sinDescansoFinal:5*60},
+    reps:1, dur:1, tempo:1},
+  avanzado:{nombre:'Avanzado', kanji:'上', icono:'🔥',
+    desc:'Exigente: 5 s entre técnicas, más repeticiones en el mismo tiempo, el sensei va rápido y solo hay agua cada 20–30 min.',
+    ritmo:{prep:10, cambio:5, cambioLado:3, descanso:90, descansoDesde:20*60, descansoMax:30*60, sinDescansoFinal:5*60},
+    reps:1.25, dur:1, tempo:0.8},
 };
-function construirTimeline(items){
-  const pasos = [{tipo:'prep', dur:10, bloque:'Saludo'}];
-  const total = items.reduce((a,it)=>{ const ej=POR_ID[it.id]; return a + (ej ? ej.duracion*(ej.lado?2:1) : 0); }, 0);
+let nivelActual = localStorage.getItem('dojo_nivel') || 'normal';
+if(!NIVELES[nivelActual]) nivelActual = 'normal';
+
+/* Modos de ejecución de una técnica dentro de la rutina ('id:lento', 'id:rapido', 'id:fuerte'):
+   la escalera del dojo — primero despacio (forma), luego a velocidad, al final con kime. */
+const MODOS = {
+  lento: {suf:'despacio', reps:0.8, dur:1.25, tempo:1.5,
+          cue:'Despacio: cuida la postura, el hikite y la mirada. La velocidad viene después'},
+  rapido:{suf:'velocidad', reps:1.4, dur:0.9, tempo:0.7,
+          cue:'Ahora a velocidad: brazo relajado, sale y vuelve como un látigo'},
+  fuerte:{suf:'kime', reps:1, dur:1, tempo:0.9,
+          cue:'Con kime: todo relajado y, en el impacto, un instante de tensión total. Kiai en la última'},
+};
+const redondeaReps = (r,f) => Math.max(4, Math.round(r*f));
+const redondeaDur  = (d,f) => Math.max(15, Math.round(d*f/5)*5);
+/* Nombre y etiqueta que se muestran para un paso (incluye modo y lado) */
+function nombrePaso(p){
+  const M = p.modo && MODOS[p.modo];
+  return p.ej.nombre + (M ? ' · '+M.suf : '') + (p.suf ? ' · '+p.suf : '');
+}
+function etiquetaPaso(p){ return p.ej.tipo==='reps' ? `${p.reps} repeticiones` : `${p.dur}s`; }
+
+function construirTimeline(items, nivel){
+  const N = NIVELES[nivel||nivelActual], R = N.ritmo;
+  // dosis de cada ítem según nivel y modo: duración, repeticiones y tempo del personaje
+  const lista = items.map(it=>{
+    const ej = POR_ID[it.id]; if(!ej) return null;
+    const M = (it.modo && MODOS[it.modo]) || {reps:1, dur:1, tempo:1};
+    return {it, ej, dur:redondeaDur(ej.duracion, N.dur*M.dur),
+            reps: ej.tipo==='reps' ? redondeaReps(ej.reps, N.reps*M.reps) : null,
+            tempo: N.tempo*M.tempo};
+  }).filter(Boolean);
+  const total = lista.reduce((a,x)=>a + x.dur*(x.ej.lado?2:1), 0);
+  const pasos = [{tipo:'prep', dur:R.prep, bloque:'Saludo'}];
   let trabajo = 0, desdeDescanso = 0, bloqueAnt = null;
-  items.forEach(it=>{
-    const ej = POR_ID[it.id]; if(!ej) return;
+  lista.forEach(x=>{
+    const {it, ej} = x;
     if(bloqueAnt!==null){
       const finBloque = it.bloque!==bloqueAnt;
-      const quedaClase = total - trabajo >= RITMO.sinDescansoFinal;
-      if(quedaClase && ((finBloque && desdeDescanso>=RITMO.descansoDesde) || desdeDescanso>=RITMO.descansoMax)){
-        pasos.push({tipo:'descanso', dur:RITMO.descanso, bloque:'Descanso · agua'});
+      const quedaClase = total - trabajo >= R.sinDescansoFinal;
+      if(quedaClase && ((finBloque && desdeDescanso>=R.descansoDesde) || desdeDescanso>=R.descansoMax)){
+        pasos.push({tipo:'descanso', dur:R.descanso, bloque:'Descanso · agua'});
         desdeDescanso = 0;
-      } else pasos.push({tipo:'cambio', dur:RITMO.cambio, bloque:it.bloque});
+      } else pasos.push({tipo:'cambio', dur:R.cambio, bloque:it.bloque});
     }
     const lados = ej.lado ? ['Lado derecho','Lado izquierdo'] : [null];
     lados.forEach((suf,li)=>{
-      if(li>0) pasos.push({tipo:'cambio', dur:RITMO.cambioLado, bloque:it.bloque, lado:true});
-      pasos.push({tipo:'ejercicio', ej, dur:ej.duracion, suf, bloque:it.bloque});
-      trabajo += ej.duracion; desdeDescanso += ej.duracion;
+      if(li>0) pasos.push({tipo:'cambio', dur:R.cambioLado, bloque:it.bloque, lado:true});
+      pasos.push({tipo:'ejercicio', ej, dur:x.dur, reps:x.reps, tempo:x.tempo, modo:it.modo||null, suf, bloque:it.bloque});
+      trabajo += x.dur; desdeDescanso += x.dur;
     });
     bloqueAnt = it.bloque;
   });
@@ -227,7 +303,7 @@ function iniciarClase(key){
     estado.pasos = construirTimeline(itemsDeRutina(r));
     estado.i = 0;
     estado.pausado = false;
-    estado.rutina = {key, nombre:r.nombre};
+    estado.rutina = {key, nombre:r.nombre, nivel:nivelActual};
     actualizarBotonVoz();
     aplicarHud();
     irA('clase');
@@ -323,33 +399,31 @@ function cargarPaso(i, anunciar){
     const ej = p.ej, cat = CATEGORIAS[ej.categoria];
     chip.textContent = cat.nombre;
     chip.style.display='';
-    pintarFigura(ej.arquetipo, ej.arte);
-    nombre.textContent = ej.nombre + (p.suf? ' · '+p.suf : '');
-    const tag = ej.tipo==='reps' ? `${ej.reps} repeticiones` : `${ej.duracion}s`;
-    meta.innerHTML = tag + (ej.pesas? ' &nbsp;·&nbsp; 🏋️ con pesas':'') + (ej.espacio? ' &nbsp;·&nbsp; ↔️ necesita espacio':'');
+    pintarFigura(ej.arquetipo, ej.arte, p.tempo);
+    nombre.textContent = nombrePaso(p);
+    meta.innerHTML = etiquetaPaso(p) + (ej.pesas? ' &nbsp;·&nbsp; 🏋️ con pesas':'') + (ej.espacio? ' &nbsp;·&nbsp; ↔️ necesita espacio':'');
     instr.innerHTML = ej.instrucciones.map(t=>`<li>${t}</li>`).join('');
     resp.textContent = '🫁 '+ej.respiracion;
     sig.innerHTML = proximo ? `<span>Después: <b>${proximo}</b></span>` : '<span>Último ejercicio 🎌</span>';
   }
   else if(p.tipo==='prep'){
     chip.style.display='none';
-    pintarFigura('respiracion');
+    pintarFigura('respiracion', null, 1);
     nombre.textContent = 'Prepárate';
-    meta.textContent = 'La clase comienza…';
+    meta.textContent = `La clase comienza… · Nivel ${NIVELES[nivelActual].nombre.toLowerCase()}`;
     instr.innerHTML = '<li>Colócate en tu metro cuadrado</li><li>Ten el agua y las pesas a mano</li><li>Respira y enfoca</li>';
     resp.textContent = '🙇 Saludo al dojo: enfoca tu mente.';
     sig.innerHTML = proximo ? `<span>Empezamos con: <b>${proximo}</b></span>` : '';
     cont.classList.add('descanso');
   }
-  else if(p.tipo==='cambio'){               // transición breve: ya se ve (y se lee) la siguiente técnica
+  else if(p.tipo==='cambio'){               // transición breve: se lee la siguiente técnica, pero el personaje DESCANSA
     const sigP = estado.pasos[i+1], ej = sigP && sigP.ej;
     chip.textContent = p.lado ? 'Cambia de lado' : 'Siguiente';
     chip.style.display='';
+    pintarFigura('soltar', null, 1);         // se suelta y sacude; la técnica arranca con el «¡ya!»
     if(ej){
-      pintarFigura(ej.arquetipo, ej.arte);
-      nombre.textContent = ej.nombre + (sigP.suf? ' · '+sigP.suf : '');
-      const tag = ej.tipo==='reps' ? `${ej.reps} repeticiones` : `${ej.duracion}s`;
-      meta.innerHTML = 'Colócate · ' + tag + (ej.pesas? ' &nbsp;·&nbsp; 🏋️ con pesas':'') + (ej.espacio? ' &nbsp;·&nbsp; ↔️ necesita espacio':'');
+      nombre.textContent = nombrePaso(sigP);
+      meta.innerHTML = 'Colócate · ' + etiquetaPaso(sigP) + (ej.pesas? ' &nbsp;·&nbsp; 🏋️ con pesas':'') + (ej.espacio? ' &nbsp;·&nbsp; ↔️ necesita espacio':'');
       instr.innerHTML = ej.instrucciones.map(t=>`<li>${t}</li>`).join('');
       resp.textContent = '🫁 '+ej.respiracion;
     }
@@ -359,7 +433,7 @@ function cargarPaso(i, anunciar){
   else { // descanso largo (cada 20–30 min de trabajo)
     chip.textContent = 'Descanso';
     chip.style.display='';
-    pintarFigura('meditacion');
+    pintarFigura('meditacion', null, 1);
     nombre.textContent = 'Pausa para el agua';
     meta.textContent = `${Math.round(p.dur/60)} min · llevas ${minutosHechos(i)} min de clase`;
     instr.innerHTML = '<li>Bebe agua a sorbos pequeños</li><li>Camina un poco y sacude brazos y piernas</li><li>Seca el sudor de manos y cara</li><li>Si quieres seguir ya, pulsa ⏭</li>';
@@ -407,8 +481,8 @@ function tiempoRestanteTotal(){
 function proximoEjercicio(i){
   for(let k=i+1;k<estado.pasos.length;k++)
     if(estado.pasos[k].tipo==='ejercicio'){
-      const p = estado.pasos[k];
-      return p.ej.nombre + (p.suf? ' ('+p.suf+')':'');
+      const p = estado.pasos[k], M = p.modo && MODOS[p.modo];
+      return p.ej.nombre + (M ? ', '+M.suf : '') + (p.suf? ' ('+p.suf+')':'');
     }
   return null;
 }
@@ -493,7 +567,7 @@ function enviarOpinion(ev){
        localStorage.setItem(LS_OPINION, JSON.stringify(prev.slice(-50))); }catch(e){}
   const titulo = `Opinión: ${clase}` + (opinion.estrellas ? ` · ${'★'.repeat(opinion.estrellas)}` : '');
   const cuerpo = [
-    `**Clase:** ${clase} (${minutos} min)`,
+    `**Clase:** ${clase} (${minutos} min) · nivel ${NIVELES[(estado.rutina && estado.rutina.nivel) || nivelActual].nombre}`,
     `**Valoración:** ${opinion.estrellas ? opinion.estrellas+'/5' : '—'}`,
     `**Intensidad:** ${opinion.intensidad ? INT[opinion.intensidad] : '—'}`,
     '', texto || '_(sin comentario)_',
@@ -515,7 +589,7 @@ function anunciarPaso(p, proximo){
   if(p.tipo==='ejercicio'){
     // tras un cambio el nombre ya se dijo: solo la señal de empezar
     if(ant && ant.tipo==='cambio') anunciar('¡Ya! '+eligeFrase(FRASES.inicio));
-    else anunciar(p.ej.nombre + (p.suf? ', '+p.suf:'') + '. ' + eligeFrase(FRASES.inicio));
+    else anunciar(nombrePaso(p).replace(/ · /g, ', ') + '. ' + eligeFrase(FRASES.inicio));
   }
   else if(p.tipo==='prep') anunciar('Prepárate. Empezamos con '+(proximo||'la clase')+'. '+eligeFrase(FRASES.inicio));
   else if(p.tipo==='cambio') anunciar(p.lado ? 'Cambia de lado' : 'Siguiente: '+(proximo||''));
@@ -665,7 +739,7 @@ function pitido(freq, dur){
 function leerSesiones(){ try{return JSON.parse(localStorage.getItem('dojo_sesiones'))||[]}catch(e){return []} }
 function registrarSesion(rutina, minutos){
   const ses = leerSesiones();
-  ses.push({fecha:fechaISO(new Date()), rutina:rutina.key, nombre:rutina.nombre, minutos});
+  ses.push({fecha:fechaISO(new Date()), rutina:rutina.key, nombre:rutina.nombre, minutos, nivel:rutina.nivel||nivelActual});
   localStorage.setItem('dojo_sesiones', JSON.stringify(ses));
 }
 
